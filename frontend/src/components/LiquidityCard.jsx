@@ -1,0 +1,394 @@
+import React, { useState, useEffect } from "react";
+import { ethers } from "ethers";
+import { PlusCircle, MinusCircle, AlertCircle, Loader2 } from "lucide-react";
+import { POOL_ABI, ERC20_ABI } from "../config/abis";
+import {
+  formatTokenAmount,
+  parseTokenAmount,
+  calculateSlippageMin,
+  parseContractError,
+} from "../lib/ethereum";
+
+export function LiquidityCard({
+  poolState,
+  signer,
+  account,
+  provider,
+  connectWallet,
+  onTxStart,
+  onTxSuccess,
+  onTxError,
+}) {
+  const { token0, token1, reserve0, reserve1, totalLpSupply, userLpBalance, poolAddress } = poolState;
+
+  const [activeTab, setActiveTab] = useState("add"); // "add" | "remove"
+  const [amount0Str, setAmount0Str] = useState("");
+  const [amount1Str, setAmount1Str] = useState("");
+  const [removePercent, setRemovePercent] = useState(50); // 50% default
+  const [approving0, setApproving0] = useState(false);
+  const [approving1, setApproving1] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const amount0BigInt = parseTokenAmount(amount0Str, token0.decimals);
+  const amount1BigInt = parseTokenAmount(amount1Str, token1.decimals);
+
+  // Proportional calculation for Add Liquidity
+  const handleAmount0Change = (val) => {
+    setAmount0Str(val);
+    if (!val || isNaN(Number(val)) || Number(val) <= 0 || reserve0 === 0n || reserve1 === 0n) {
+      if (!val) setAmount1Str("");
+      return;
+    }
+    try {
+      const a0 = ethers.parseUnits(val, token0.decimals);
+      // proportional amount1 = a0 * reserve1 / reserve0
+      const a1 = (a0 * reserve1) / reserve0;
+      setAmount1Str(ethers.formatUnits(a1, token1.decimals));
+    } catch {
+      // ignore parse errors
+    }
+  };
+
+  const handleAmount1Change = (val) => {
+    setAmount1Str(val);
+    if (!val || isNaN(Number(val)) || Number(val) <= 0 || reserve0 === 0n || reserve1 === 0n) {
+      if (!val) setAmount0Str("");
+      return;
+    }
+    try {
+      const a1 = ethers.parseUnits(val, token1.decimals);
+      // proportional amount0 = a1 * reserve0 / reserve1
+      const a0 = (a1 * reserve0) / reserve1;
+      setAmount0Str(ethers.formatUnits(a0, token0.decimals));
+    } catch {
+      // ignore parse errors
+    }
+  };
+
+  // Balance validations
+  const insufficient0 = account && amount0BigInt > token0.userBalance;
+  const insufficient1 = account && amount1BigInt > token1.userBalance;
+  const needsApproval0 = account && amount0BigInt > 0n && amount0BigInt > token0.allowance;
+  const needsApproval1 = account && amount1BigInt > 0n && amount1BigInt > token1.allowance;
+
+  // Expected LP share percentage when adding liquidity
+  let projectedSharePct = "0.00%";
+  if (amount0BigInt > 0n && reserve0 > 0n && totalLpSupply > 0n) {
+    const newSupply = totalLpSupply + (amount0BigInt * totalLpSupply) / reserve0;
+    const userNew = userLpBalance + (amount0BigInt * totalLpSupply) / reserve0;
+    projectedSharePct = ((Number(userNew) / Number(newSupply)) * 100).toFixed(2) + "%";
+  }
+
+  // Tokens to receive when removing liquidity
+  const sharesToRemove = (userLpBalance * BigInt(removePercent)) / 100n;
+  const expectedReturn0 = totalLpSupply > 0n ? (sharesToRemove * reserve0) / totalLpSupply : 0n;
+  const expectedReturn1 = totalLpSupply > 0n ? (sharesToRemove * reserve1) / totalLpSupply : 0n;
+
+  // Approve Token 0
+  const handleApproveToken0 = async () => {
+    if (!signer) return;
+    try {
+      setApproving0(true);
+      if (onTxStart) onTxStart("waiting", "Approve " + token0.symbol, "Approving token in wallet...");
+      const contract = new ethers.Contract(token0.address, ERC20_ABI, signer);
+      const tx = await contract.approve(poolAddress, ethers.MaxUint256);
+      if (onTxStart) onTxStart("pending", "Approval Pending", `Tx: ${tx.hash}`, tx.hash);
+      const receipt = await tx.wait();
+      if (onTxSuccess) onTxSuccess(`Approved ${token0.symbol} for liquidity deposit!`, receipt.hash);
+    } catch (err) {
+      if (onTxError) onTxError(parseContractError(err));
+    } finally {
+      setApproving0(false);
+    }
+  };
+
+  // Approve Token 1
+  const handleApproveToken1 = async () => {
+    if (!signer) return;
+    try {
+      setApproving1(true);
+      if (onTxStart) onTxStart("waiting", "Approve " + token1.symbol, "Approving token in wallet...");
+      const contract = new ethers.Contract(token1.address, ERC20_ABI, signer);
+      const tx = await contract.approve(poolAddress, ethers.MaxUint256);
+      if (onTxStart) onTxStart("pending", "Approval Pending", `Tx: ${tx.hash}`, tx.hash);
+      const receipt = await tx.wait();
+      if (onTxSuccess) onTxSuccess(`Approved ${token1.symbol} for liquidity deposit!`, receipt.hash);
+    } catch (err) {
+      if (onTxError) onTxError(parseContractError(err));
+    } finally {
+      setApproving1(false);
+    }
+  };
+
+  // Execute Add Liquidity
+  const handleAddLiquidity = async () => {
+    if (!signer || !account || amount0BigInt <= 0n || amount1BigInt <= 0n) return;
+    const deadline = Math.floor(Date.now() / 1000) + 1200;
+
+    // 0.5% slippage on min tokens
+    const amount0Min = (amount0BigInt * 995n) / 1000n;
+    const amount1Min = (amount1BigInt * 995n) / 1000n;
+
+    try {
+      setSubmitting(true);
+      if (onTxStart) onTxStart("waiting", "Deposit Liquidity", "Please confirm deposit in your wallet...");
+
+      const poolContract = new ethers.Contract(poolAddress, POOL_ABI, signer);
+      const tx = await poolContract.addLiquidity(
+        amount0BigInt,
+        amount1BigInt,
+        amount0Min,
+        amount1Min,
+        account,
+        deadline
+      );
+
+      if (onTxStart) onTxStart("pending", "Adding Liquidity", `Tx: ${tx.hash}`, tx.hash);
+      const receipt = await tx.wait();
+      if (onTxSuccess) onTxSuccess(`Successfully supplied liquidity to the pool!`, receipt.hash);
+      setAmount0Str("");
+      setAmount1Str("");
+    } catch (err) {
+      if (onTxError) onTxError(parseContractError(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Execute Remove Liquidity
+  const handleRemoveLiquidity = async () => {
+    if (!signer || !account || sharesToRemove <= 0n) return;
+    const deadline = Math.floor(Date.now() / 1000) + 1200;
+
+    // 1% slippage tolerance on return amounts
+    const amount0Min = (expectedReturn0 * 99n) / 100n;
+    const amount1Min = (expectedReturn1 * 99n) / 100n;
+
+    try {
+      setSubmitting(true);
+      if (onTxStart) onTxStart("waiting", "Remove Liquidity", "Please confirm withdrawal in your wallet...");
+
+      const poolContract = new ethers.Contract(poolAddress, POOL_ABI, signer);
+      const tx = await poolContract.removeLiquidity(
+        sharesToRemove,
+        amount0Min,
+        amount1Min,
+        account,
+        deadline
+      );
+
+      if (onTxStart) onTxStart("pending", "Removing Liquidity", `Tx: ${tx.hash}`, tx.hash);
+      const receipt = await tx.wait();
+      if (onTxSuccess) onTxSuccess(`Successfully withdrew underlying tokens!`, receipt.hash);
+    } catch (err) {
+      if (onTxError) onTxError(parseContractError(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="glass-panel" style={{ padding: "1.75rem", width: "100%", maxWidth: "480px", margin: "0 auto" }}>
+      {/* Sub Tabs: Add vs Remove */}
+      <div className="tab-container">
+        <button
+          className={`tab-btn ${activeTab === "add" ? "active" : ""}`}
+          onClick={() => setActiveTab("add")}
+        >
+          <PlusCircle size={16} />
+          <span>Add Liquidity</span>
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "remove" ? "active" : ""}`}
+          onClick={() => setActiveTab("remove")}
+        >
+          <MinusCircle size={16} />
+          <span>Remove Liquidity</span>
+        </button>
+      </div>
+
+      {activeTab === "add" ? (
+        <div>
+          {/* Token 0 Input */}
+          <div className="token-input-card">
+            <div className="token-input-header">
+              <span>Deposit {token0.symbol}</span>
+              <span
+                className="balance-pill"
+                onClick={() => handleAmount0Change(ethers.formatUnits(token0.userBalance, token0.decimals))}
+              >
+                Balance: {formatTokenAmount(token0.userBalance, token0.decimals, 4)} {token0.symbol}
+              </span>
+            </div>
+            <div className="token-input-body">
+              <input
+                type="number"
+                className="token-amount-input"
+                placeholder="0.0"
+                value={amount0Str}
+                onChange={(e) => handleAmount0Change(e.target.value)}
+              />
+              <div className="token-badge">
+                <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--accent-cyan)" }} />
+                <span>{token0.symbol}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Token 1 Input */}
+          <div className="token-input-card">
+            <div className="token-input-header">
+              <span>Deposit {token1.symbol} (Proportional)</span>
+              <span
+                className="balance-pill"
+                onClick={() => handleAmount1Change(ethers.formatUnits(token1.userBalance, token1.decimals))}
+              >
+                Balance: {formatTokenAmount(token1.userBalance, token1.decimals, 4)} {token1.symbol}
+              </span>
+            </div>
+            <div className="token-input-body">
+              <input
+                type="number"
+                className="token-amount-input"
+                placeholder="0.0"
+                value={amount1Str}
+                onChange={(e) => handleAmount1Change(e.target.value)}
+              />
+              <div className="token-badge">
+                <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--accent-violet)" }} />
+                <span>{token1.symbol}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Projected Share Summary */}
+          {amount0BigInt > 0n && (
+            <div className="swap-details-box">
+              <div className="detail-row">
+                <span>Estimated Pool Share</span>
+                <span className="detail-value">{projectedSharePct}</span>
+              </div>
+              <div className="detail-row">
+                <span>Fee Share</span>
+                <span className="detail-value">0.30% of all future swaps proportionally</span>
+              </div>
+            </div>
+          )}
+
+          {/* Error messages */}
+          {(insufficient0 || insufficient1) && (
+            <div className="alert-box alert-error" style={{ marginTop: "1rem" }}>
+              <AlertCircle size={16} />
+              <span>Insufficient token balance to supply this liquidity. Use Faucet for free tokens.</span>
+            </div>
+          )}
+
+          {/* Action Button */}
+          <div style={{ marginTop: "1.25rem" }}>
+            {!account ? (
+              <button className="btn-primary" style={{ width: "100%" }} onClick={connectWallet}>
+                Connect Wallet
+              </button>
+            ) : needsApproval0 ? (
+              <button
+                className="btn-primary"
+                style={{ width: "100%", background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}
+                onClick={handleApproveToken0}
+                disabled={approving0}
+              >
+                {approving0 ? "Approving " + token0.symbol + "..." : "Approve " + token0.symbol}
+              </button>
+            ) : needsApproval1 ? (
+              <button
+                className="btn-primary"
+                style={{ width: "100%", background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}
+                onClick={handleApproveToken1}
+                disabled={approving1}
+              >
+                {approving1 ? "Approving " + token1.symbol + "..." : "Approve " + token1.symbol}
+              </button>
+            ) : (
+              <button
+                className="btn-primary"
+                style={{ width: "100%" }}
+                onClick={handleAddLiquidity}
+                disabled={submitting || amount0BigInt <= 0n || amount1BigInt <= 0n || insufficient0 || insufficient1}
+              >
+                {submitting ? "Supplying Liquidity..." : "Supply Liquidity"}
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Remove Liquidity Tab */
+        <div>
+          <div className="token-input-card">
+            <div className="token-input-header">
+              <span>Amount of LP Shares to Burn</span>
+              <span>Available: {formatTokenAmount(userLpBalance, 18, 4)} PLP</span>
+            </div>
+            <div style={{ padding: "0.5rem 0" }}>
+              <div style={{ fontSize: "1.6rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>
+                {removePercent}%
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={removePercent}
+                onChange={(e) => setRemovePercent(Number(e.target.value))}
+                style={{ width: "100%", marginTop: "0.75rem", accentColor: "var(--accent-cyan)", cursor: "pointer" }}
+              />
+            </div>
+            {/* Quick percent buttons */}
+            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+              {[25, 50, 75, 100].map((pct) => (
+                <button
+                  key={pct}
+                  className={`slippage-btn ${removePercent === pct ? "active" : ""}`}
+                  onClick={() => setRemovePercent(pct)}
+                  style={{ flex: 1 }}
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Underlyings to receive */}
+          <div className="swap-details-box">
+            <div className="detail-row">
+              <span>You will receive {token0.symbol}:</span>
+              <span className="detail-value">{formatTokenAmount(expectedReturn0, token0.decimals, 4)} {token0.symbol}</span>
+            </div>
+            <div className="detail-row">
+              <span>You will receive {token1.symbol}:</span>
+              <span className="detail-value">{formatTokenAmount(expectedReturn1, token1.decimals, 4)} {token1.symbol}</span>
+            </div>
+          </div>
+
+          <div style={{ marginTop: "1.25rem" }}>
+            {!account ? (
+              <button className="btn-primary" style={{ width: "100%" }} onClick={connectWallet}>
+                Connect Wallet
+              </button>
+            ) : userLpBalance === 0n ? (
+              <button className="btn-primary" style={{ width: "100%" }} disabled>
+                No LP Shares in Wallet
+              </button>
+            ) : (
+              <button
+                className="btn-primary"
+                style={{ width: "100%" }}
+                onClick={handleRemoveLiquidity}
+                disabled={submitting}
+              >
+                {submitting ? "Withdrawing..." : `Withdraw ${removePercent}% Liquidity`}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,25 @@
+{
+  "name": "poolpilot",
+  "version": "1.0.0",
+  "description": "PoolPilot - Transparent Non-Custodial AMM Token-Swap Prototype",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:contracts && npm run test:frontend",
+    "test:contracts": "npm --prefix contracts test",
+    "test:frontend": "npm --prefix frontend test",
+    "compile": "npm --prefix contracts run compile",
+    "deploy:local": "npm --prefix contracts run deploy:local",
+    "dev": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build"
+  },
+  "keywords": [
+    "amm",
+    "defi",
+    "dex",
+    "constant-product",
+    "ethereum",
+    "solidity"
+  ],
+  "author": "Team 404",
+  "license": "MIT"
+}

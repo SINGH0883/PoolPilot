@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Contracts build artifacts
+contracts/artifacts/
+contracts/cache/
+contracts/out/
+out/
+cache/
+
+# Frontend production builds
+frontend/dist/
+frontend/dist-ssr/
+*.local
+
+# Environment variables & secrets
+.env
+.env*.local
+
+# Editor & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
