@@ -4,7 +4,6 @@ import { useWallet } from "./hooks/useWallet";
 import { usePoolData } from "./hooks/usePoolData";
 import { usePoolEvents } from "./hooks/usePoolEvents";
 import { Header } from "./components/Header";
-import { DisclaimerBanner } from "./components/DisclaimerBanner";
 import { TraderMetrics } from "./components/TraderMetrics";
 import { ActivityLedger } from "./components/ActivityLedger";
 import { SwapCard } from "./components/SwapCard";
@@ -108,9 +107,6 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
-
-      {/* Dismissable Hackathon Disclaimer */}
-      <DisclaimerBanner />
 
       {/* Main Content Area */}
       <main style={{ flex: 1, padding: "1.25rem 1.5rem 3rem 1.5rem" }}>
@@ -231,29 +227,6 @@ export function App() {
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer
-        style={{
-          borderTop: "1px solid var(--header-border)",
-          padding: "1.5rem 2rem",
-          textAlign: "center",
-          color: "var(--text-muted)",
-          fontSize: "0.82rem",
-        }}
-      >
-        <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-          <div>
-            <strong>PoolPilot</strong> — Constant-Product Automated Market Maker
-          </div>
-          <div>
-            Built by <strong>Team 404</strong>: Yuvraj Kumar • Yash Singh • Alwin Mathew
-          </div>
-          <div style={{ color: "var(--text-subtle)", fontSize: "0.75rem" }}>
-            Solidity 0.8.24 • OpenZeppelin v5 SafeERC20 • Constant Product k = x × y • 0.30% Fee Tier
-          </div>
-        </div>
-      </footer>
 
       {/* Faucet Modal */}
       <FaucetModal
