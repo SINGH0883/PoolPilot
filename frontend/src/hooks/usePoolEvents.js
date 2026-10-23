@@ -23,11 +23,11 @@ export function usePoolEvents(provider, poolState, account) {
 
       const poolContract = new ethers.Contract(poolState.poolAddress, POOL_ABI, provider);
 
-      // Query past events from the last 50,000 blocks
+      // Query past events from genesis block 0
       const [swapLogs, mintLogs, burnLogs] = await Promise.all([
-        poolContract.queryFilter(poolContract.filters.Swap(), -50000).catch(() => []),
-        poolContract.queryFilter(poolContract.filters.Mint(), -50000).catch(() => []),
-        poolContract.queryFilter(poolContract.filters.Burn(), -50000).catch(() => []),
+        poolContract.queryFilter(poolContract.filters.Swap(), 0).catch(() => []),
+        poolContract.queryFilter(poolContract.filters.Mint(), 0).catch(() => []),
+        poolContract.queryFilter(poolContract.filters.Burn(), 0).catch(() => []),
       ]);
 
       const formatted = [];

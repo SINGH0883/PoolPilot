@@ -168,7 +168,7 @@ export function SwapCard({
           onClick={() => setShowSettings(!showSettings)}
           title="Slippage Settings"
         >
-          <Settings size={17} color={showSettings ? "var(--accent-cyan)" : "var(--text-secondary)"} />
+          <Settings size={17} color={showSettings ? "var(--accent-blue)" : "var(--text-secondary)"} />
         </button>
       </div>
 

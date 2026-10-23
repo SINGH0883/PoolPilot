@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeftRight, Droplet, User, Coins } from "lucide-react";
+import { ArrowLeftRight, Droplet, User, Coins, BarChart3, TrendingUp, Sparkles } from "lucide-react";
 import { useWallet } from "./hooks/useWallet";
 import { usePoolData } from "./hooks/usePoolData";
 import { usePoolEvents } from "./hooks/usePoolEvents";
@@ -42,7 +42,7 @@ export function App() {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  const [activeTab, setActiveTab] = useState("swap"); // "swap" | "pool"
+  const [activeTab, setActiveTab] = useState("swap"); // "swap" | "pool" | "analytics"
   const [faucetOpen, setFaucetOpen] = useState(false);
   const [txState, setTxState] = useState({
     status: "idle", // "idle" | "waiting" | "pending" | "success" | "error"
@@ -86,9 +86,14 @@ export function App() {
     setTxState({ status: "idle", title: "", message: "", hash: null, error: null });
   };
 
+  // Compute exchange rate for top pill
+  const r0 = Number(formatTokenAmount(poolState.reserve0, poolState.token0.decimals, 6));
+  const r1 = Number(formatTokenAmount(poolState.reserve1, poolState.token1.decimals, 6));
+  const price = r0 > 0 && r1 > 0 ? (r0 / r1).toFixed(2) : "2,500.00";
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      {/* Top Navigation */}
+      {/* Full-Bleed Top Navigation Bar */}
       <Header
         account={account}
         chainId={chainId}
@@ -100,20 +105,122 @@ export function App() {
         loading={poolLoading || eventsLoading}
         theme={theme}
         toggleTheme={toggleTheme}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
       />
 
-      {/* Mandatory Hackathon Prototype Disclaimer */}
+      {/* Dismissable Hackathon Disclaimer */}
       <DisclaimerBanner />
 
-      {/* Main Trader Dashboard Container */}
-      <main style={{ flex: 1, maxWidth: "1280px", width: "100%", margin: "1rem auto 0 auto", padding: "0 1.5rem 3rem 1.5rem" }}>
-        {/* Top 4 KPI Metric Cards & Pool Reserve Depth Meter */}
-        <TraderMetrics poolState={poolState} volumeStats={volumeStats} />
+      {/* Main Content Area */}
+      <main style={{ flex: 1, padding: "1.25rem 1.5rem 3rem 1.5rem" }}>
+        {/* VIEW 1: SWAP INTERFACE */}
+        {activeTab === "swap" && (
+          <div style={{ maxWidth: "480px", margin: "0 auto" }}>
+            {/* Live Exchange Rate Pill */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "var(--pill-bg)",
+                border: "1px solid var(--pill-border)",
+                borderRadius: "var(--radius-full)",
+                padding: "0.45rem 1rem",
+                marginBottom: "1rem",
+                fontSize: "0.82rem",
+                color: "var(--pill-text)",
+                fontWeight: 600,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <TrendingUp size={14} />
+                <span>1 {poolState.token1.symbol} ≈ ${price} {poolState.token0.symbol}</span>
+              </div>
+              <span style={{ fontSize: "0.75rem", opacity: 0.85 }}>0.30% Fee Tier</span>
+            </div>
 
-        {/* Two-Column Trader Dashboard Grid */}
-        <div className="trader-grid">
-          {/* Left Column: Live On-Chain Activity Ledger */}
-          <div>
+            {/* Core Swap Card */}
+            <SwapCard
+              poolState={poolState}
+              signer={signer}
+              account={account}
+              provider={provider}
+              connectWallet={connectWallet}
+              onTxStart={handleTxStart}
+              onTxSuccess={handleTxSuccess}
+              onTxError={handleTxError}
+            />
+
+            {/* Compact Pool Depth & Quick Health Strip */}
+            <div
+              className="glass-panel"
+              style={{
+                marginTop: "1.25rem",
+                padding: "1rem 1.25rem",
+                fontSize: "0.82rem",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>Pool Reserves</span>
+                <button
+                  onClick={() => setActiveTab("analytics")}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--accent-blue)",
+                    fontSize: "0.78rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  View Full Analytics →
+                </button>
+              </div>
+
+              {/* Progress Depth Bar */}
+              <div
+                style={{
+                  height: "8px",
+                  borderRadius: "var(--radius-full)",
+                  background: "var(--tab-container-bg)",
+                  overflow: "hidden",
+                  display: "flex",
+                  margin: "0.45rem 0",
+                }}
+              >
+                <div style={{ width: "50%", background: "#2563EB" }} />
+                <div style={{ width: "50%", background: "#8B5CF6" }} />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)", fontSize: "0.78rem" }}>
+                <span>{formatTokenAmount(poolState.reserve0, poolState.token0.decimals, 0)} {poolState.token0.symbol} (50%)</span>
+                <span>{formatTokenAmount(poolState.reserve1, poolState.token1.decimals, 1)} {poolState.token1.symbol} (50%)</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 2: LIQUIDITY PROVISION INTERFACE */}
+        {activeTab === "pool" && (
+          <div style={{ maxWidth: "480px", margin: "0 auto" }}>
+            <LiquidityCard
+              poolState={poolState}
+              signer={signer}
+              account={account}
+              provider={provider}
+              connectWallet={connectWallet}
+              onTxStart={handleTxStart}
+              onTxSuccess={handleTxSuccess}
+              onTxError={handleTxError}
+            />
+          </div>
+        )}
+
+        {/* VIEW 3: FULL TRADER ANALYTICS & ACTIVITY LEDGER */}
+        {activeTab === "analytics" && (
+          <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+            <TraderMetrics poolState={poolState} volumeStats={volumeStats} />
             <ActivityLedger
               events={events}
               loading={eventsLoading}
@@ -122,112 +229,28 @@ export function App() {
               chainId={chainId}
             />
           </div>
-
-          {/* Right Column: Trading & Liquidity Console */}
-          <div>
-            {/* Console Action Tabs */}
-            <div className="tab-container" style={{ marginBottom: "1rem" }}>
-              <button
-                className={`tab-btn ${activeTab === "swap" ? "active" : ""}`}
-                onClick={() => setActiveTab("swap")}
-              >
-                <ArrowLeftRight size={16} />
-                <span>Swap Tokens</span>
-              </button>
-              <button
-                className={`tab-btn ${activeTab === "pool" ? "active" : ""}`}
-                onClick={() => setActiveTab("pool")}
-              >
-                <Droplet size={16} />
-                <span>Liquidity Pool</span>
-              </button>
-            </div>
-
-            {/* Swap or Liquidity Card */}
-            {activeTab === "swap" ? (
-              <SwapCard
-                poolState={poolState}
-                signer={signer}
-                account={account}
-                provider={provider}
-                connectWallet={connectWallet}
-                onTxStart={handleTxStart}
-                onTxSuccess={handleTxSuccess}
-                onTxError={handleTxError}
-              />
-            ) : (
-              <LiquidityCard
-                poolState={poolState}
-                signer={signer}
-                account={account}
-                provider={provider}
-                connectWallet={connectWallet}
-                onTxStart={handleTxStart}
-                onTxSuccess={handleTxSuccess}
-                onTxError={handleTxError}
-              />
-            )}
-
-            {/* Quick Wallet Portfolio Snippet */}
-            {account && (
-              <div
-                className="glass-panel"
-                style={{
-                  marginTop: "1.25rem",
-                  padding: "1rem 1.25rem",
-                  fontSize: "0.84rem",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-secondary)", fontWeight: 600 }}>
-                    <User size={15} color="var(--accent-blue)" />
-                    <span>Your Balances</span>
-                  </div>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Connected Account</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                  <span style={{ color: "var(--text-muted)" }}>{poolState.token0.symbol}:</span>
-                  <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
-                    {formatTokenAmount(poolState.token0.userBalance, poolState.token0.decimals, 2)}
-                  </span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                  <span style={{ color: "var(--text-muted)" }}>{poolState.token1.symbol}:</span>
-                  <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
-                    {formatTokenAmount(poolState.token1.userBalance, poolState.token1.decimals, 4)}
-                  </span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--border-card)", paddingTop: "0.4rem", marginTop: "0.4rem" }}>
-                  <span style={{ color: "var(--text-muted)" }}>LP Pool Shares:</span>
-                  <span style={{ fontWeight: 700, color: "var(--accent-blue)" }}>
-                    {formatTokenAmount(poolState.userLpBalance, 18, 4)} PLP
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </main>
 
       {/* Footer */}
       <footer
         style={{
           borderTop: "1px solid var(--header-border)",
-          padding: "1.75rem 2rem",
+          padding: "1.5rem 2rem",
           textAlign: "center",
           color: "var(--text-muted)",
           fontSize: "0.82rem",
         }}
       >
-        <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
           <div>
             <strong>PoolPilot</strong> — Constant-Product Automated Market Maker
           </div>
           <div>
-            Built by <strong>Team 404</strong>: Yuvraj Kumar (Data & Reserves) • Yash Singh (UI/UX) • Alwin Mathew (Backend & On-Chain)
+            Built by <strong>Team 404</strong>: Yuvraj Kumar • Yash Singh • Alwin Mathew
           </div>
           <div style={{ color: "var(--text-subtle)", fontSize: "0.75rem" }}>
-            Solidity 0.8.24 • OpenZeppelin v5 SafeERC20 • Constant Product x * y = k • 0.30% Fee Tier
+            Solidity 0.8.24 • OpenZeppelin v5 SafeERC20 • Constant Product k = x × y • 0.30% Fee Tier
           </div>
         </div>
       </footer>

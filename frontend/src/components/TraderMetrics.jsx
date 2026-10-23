@@ -108,8 +108,8 @@ export function TraderMetrics({ poolState, volumeStats }) {
           <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)" }}>
             Pool Reserve Ratio & Asset Depth
           </span>
-          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-            Constant-Product Invariant $k = x \cdot y$
+          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 500 }}>
+            Invariant: k = x × y
           </span>
         </div>
 
