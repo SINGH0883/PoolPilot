@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeftRight, Droplet } from "lucide-react";
+import { ArrowLeftRight, Droplet, User, Coins } from "lucide-react";
 import { useWallet } from "./hooks/useWallet";
 import { usePoolData } from "./hooks/usePoolData";
+import { usePoolEvents } from "./hooks/usePoolEvents";
 import { Header } from "./components/Header";
 import { DisclaimerBanner } from "./components/DisclaimerBanner";
-import { PoolOverview } from "./components/PoolOverview";
+import { TraderMetrics } from "./components/TraderMetrics";
+import { ActivityLedger } from "./components/ActivityLedger";
 import { SwapCard } from "./components/SwapCard";
 import { LiquidityCard } from "./components/LiquidityCard";
 import { FaucetModal } from "./components/FaucetModal";
 import { TransactionModal } from "./components/TransactionModal";
+import { formatTokenAmount } from "./lib/ethereum";
 
 export function App() {
   const {
@@ -22,7 +25,8 @@ export function App() {
     disconnectWallet,
   } = useWallet();
 
-  const { poolState, loading, error: poolError, refresh } = usePoolData(provider, account);
+  const { poolState, loading: poolLoading, error: poolError, refresh: refreshPool } = usePoolData(provider, account);
+  const { events, volumeStats, loading: eventsLoading, refreshEvents } = usePoolEvents(provider, poolState, account);
 
   // Minimal White & Blue theme as default
   const [theme, setTheme] = useState(() => {
@@ -48,6 +52,11 @@ export function App() {
     error: null,
   });
 
+  const refreshAll = () => {
+    refreshPool();
+    refreshEvents();
+  };
+
   const handleTxStart = (status, title, message, hash = null) => {
     setTxState({ status, title, message, hash, error: null });
   };
@@ -60,7 +69,7 @@ export function App() {
       hash,
       error: null,
     });
-    refresh();
+    refreshAll();
   };
 
   const handleTxError = (errorMessage) => {
@@ -79,7 +88,7 @@ export function App() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      {/* Top Header */}
+      {/* Top Navigation */}
       <Header
         account={account}
         chainId={chainId}
@@ -87,65 +96,116 @@ export function App() {
         connectWallet={connectWallet}
         disconnectWallet={disconnectWallet}
         openFaucet={() => setFaucetOpen(true)}
-        onRefresh={refresh}
-        loading={loading}
+        onRefresh={refreshAll}
+        loading={poolLoading || eventsLoading}
         theme={theme}
         toggleTheme={toggleTheme}
       />
 
-      {/* Mandatory Hackathon Disclaimer */}
+      {/* Mandatory Hackathon Prototype Disclaimer */}
       <DisclaimerBanner />
 
-      {/* Main Container */}
-      <main style={{ flex: 1, paddingBottom: "3rem" }}>
-        {/* Pool Stat Cards */}
-        <PoolOverview poolState={poolState} account={account} />
+      {/* Main Trader Dashboard Container */}
+      <main style={{ flex: 1, maxWidth: "1280px", width: "100%", margin: "1rem auto 0 auto", padding: "0 1.5rem 3rem 1.5rem" }}>
+        {/* Top 4 KPI Metric Cards & Pool Reserve Depth Meter */}
+        <TraderMetrics poolState={poolState} volumeStats={volumeStats} />
 
-        {/* Trade / Pool Tabs */}
-        <div style={{ maxWidth: "480px", margin: "1.5rem auto 1rem auto", padding: "0 1rem" }}>
-          <div className="tab-container" style={{ margin: 0 }}>
-            <button
-              className={`tab-btn ${activeTab === "swap" ? "active" : ""}`}
-              onClick={() => setActiveTab("swap")}
-            >
-              <ArrowLeftRight size={17} />
-              <span>Swap</span>
-            </button>
-            <button
-              className={`tab-btn ${activeTab === "pool" ? "active" : ""}`}
-              onClick={() => setActiveTab("pool")}
-            >
-              <Droplet size={17} />
-              <span>Pool & Liquidity</span>
-            </button>
+        {/* Two-Column Trader Dashboard Grid */}
+        <div className="trader-grid">
+          {/* Left Column: Live On-Chain Activity Ledger */}
+          <div>
+            <ActivityLedger
+              events={events}
+              loading={eventsLoading}
+              onRefresh={refreshEvents}
+              account={account}
+              chainId={chainId}
+            />
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div style={{ padding: "0 1rem" }}>
-          {activeTab === "swap" ? (
-            <SwapCard
-              poolState={poolState}
-              signer={signer}
-              account={account}
-              provider={provider}
-              connectWallet={connectWallet}
-              onTxStart={handleTxStart}
-              onTxSuccess={handleTxSuccess}
-              onTxError={handleTxError}
-            />
-          ) : (
-            <LiquidityCard
-              poolState={poolState}
-              signer={signer}
-              account={account}
-              provider={provider}
-              connectWallet={connectWallet}
-              onTxStart={handleTxStart}
-              onTxSuccess={handleTxSuccess}
-              onTxError={handleTxError}
-            />
-          )}
+          {/* Right Column: Trading & Liquidity Console */}
+          <div>
+            {/* Console Action Tabs */}
+            <div className="tab-container" style={{ marginBottom: "1rem" }}>
+              <button
+                className={`tab-btn ${activeTab === "swap" ? "active" : ""}`}
+                onClick={() => setActiveTab("swap")}
+              >
+                <ArrowLeftRight size={16} />
+                <span>Swap Tokens</span>
+              </button>
+              <button
+                className={`tab-btn ${activeTab === "pool" ? "active" : ""}`}
+                onClick={() => setActiveTab("pool")}
+              >
+                <Droplet size={16} />
+                <span>Liquidity Pool</span>
+              </button>
+            </div>
+
+            {/* Swap or Liquidity Card */}
+            {activeTab === "swap" ? (
+              <SwapCard
+                poolState={poolState}
+                signer={signer}
+                account={account}
+                provider={provider}
+                connectWallet={connectWallet}
+                onTxStart={handleTxStart}
+                onTxSuccess={handleTxSuccess}
+                onTxError={handleTxError}
+              />
+            ) : (
+              <LiquidityCard
+                poolState={poolState}
+                signer={signer}
+                account={account}
+                provider={provider}
+                connectWallet={connectWallet}
+                onTxStart={handleTxStart}
+                onTxSuccess={handleTxSuccess}
+                onTxError={handleTxError}
+              />
+            )}
+
+            {/* Quick Wallet Portfolio Snippet */}
+            {account && (
+              <div
+                className="glass-panel"
+                style={{
+                  marginTop: "1.25rem",
+                  padding: "1rem 1.25rem",
+                  fontSize: "0.84rem",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-secondary)", fontWeight: 600 }}>
+                    <User size={15} color="var(--accent-blue)" />
+                    <span>Your Balances</span>
+                  </div>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Connected Account</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem" }}>
+                  <span style={{ color: "var(--text-muted)" }}>{poolState.token0.symbol}:</span>
+                  <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                    {formatTokenAmount(poolState.token0.userBalance, poolState.token0.decimals, 2)}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem" }}>
+                  <span style={{ color: "var(--text-muted)" }}>{poolState.token1.symbol}:</span>
+                  <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                    {formatTokenAmount(poolState.token1.userBalance, poolState.token1.decimals, 4)}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--border-card)", paddingTop: "0.4rem", marginTop: "0.4rem" }}>
+                  <span style={{ color: "var(--text-muted)" }}>LP Pool Shares:</span>
+                  <span style={{ fontWeight: 700, color: "var(--accent-blue)" }}>
+                    {formatTokenAmount(poolState.userLpBalance, 18, 4)} PLP
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </main>
 
@@ -179,7 +239,7 @@ export function App() {
         poolState={poolState}
         signer={signer}
         account={account}
-        onMintSuccess={refresh}
+        onMintSuccess={refreshAll}
       />
 
       {/* Transaction Status Modal */}
