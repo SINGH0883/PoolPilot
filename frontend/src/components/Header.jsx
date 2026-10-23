@@ -1,6 +1,6 @@
 import React from "react";
 import { Waves, Wallet, Droplets, RefreshCw, PowerOff, Sun, Moon, ArrowLeftRight, Droplet, BarChart3 } from "lucide-react";
-import { shortenAddress, SUPPORTED_NETWORKS } from "../lib/ethereum";
+import { shortenAddress } from "../lib/ethereum";
 
 export function Header({
   account,
@@ -16,7 +16,6 @@ export function Header({
   activeTab,
   setActiveTab,
 }) {
-  const currentNetwork = chainId ? SUPPORTED_NETWORKS[chainId] : null;
 
   return (
     <header className="top-navbar-wrapper">
@@ -29,7 +28,6 @@ export function Header({
           <div>
             <div style={{ display: "flex", alignItems: "center" }}>
               <span className="brand-title">PoolPilot</span>
-              <span className="brand-tag">AMM v1</span>
             </div>
             <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "1px" }}>
               Constant-Product Protocol
@@ -92,34 +90,6 @@ export function Header({
             <span style={{ fontWeight: 600 }}>Faucet</span>
           </button>
 
-          {/* Network Badge */}
-          {chainId && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.45rem",
-                background: "var(--badge-network-bg)",
-                border: "1px solid var(--badge-network-border)",
-                padding: "0.45rem 0.75rem",
-                borderRadius: "var(--radius-md)",
-                fontSize: "0.8rem",
-                color: "var(--badge-network-text)",
-                fontWeight: 500,
-              }}
-            >
-              <span
-                style={{
-                  width: "7px",
-                  height: "7px",
-                  borderRadius: "50%",
-                  background: currentNetwork ? "var(--accent-emerald)" : "var(--accent-rose)",
-                  boxShadow: currentNetwork ? "0 0 6px var(--accent-emerald)" : "none",
-                }}
-              />
-              <span>{currentNetwork ? currentNetwork.name : `Chain #${chainId}`}</span>
-            </div>
-          )}
 
           {/* Wallet Connection */}
           {account ? (

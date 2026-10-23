@@ -188,21 +188,21 @@ export function LiquidityCard({
   };
 
   return (
-    <div className="glass-panel" style={{ padding: "1.75rem", width: "100%", maxWidth: "480px", margin: "0 auto" }}>
+    <div className="glass-panel" style={{ padding: "1.15rem 1.35rem", width: "100%", maxWidth: "460px", margin: "0 auto" }}>
       {/* Sub Tabs: Add vs Remove */}
       <div className="tab-container">
         <button
           className={`tab-btn ${activeTab === "add" ? "active" : ""}`}
           onClick={() => setActiveTab("add")}
         >
-          <PlusCircle size={16} />
+          <PlusCircle size={15} />
           <span>Add Liquidity</span>
         </button>
         <button
           className={`tab-btn ${activeTab === "remove" ? "active" : ""}`}
           onClick={() => setActiveTab("remove")}
         >
-          <MinusCircle size={16} />
+          <MinusCircle size={15} />
           <span>Remove Liquidity</span>
         </button>
       </div>
@@ -277,14 +277,14 @@ export function LiquidityCard({
 
           {/* Error messages */}
           {(insufficient0 || insufficient1) && (
-            <div className="alert-box alert-error" style={{ marginTop: "1rem" }}>
-              <AlertCircle size={16} />
-              <span>Insufficient token balance to supply this liquidity. Use Faucet for free tokens.</span>
+            <div className="alert-box alert-error" style={{ marginTop: "0.65rem", padding: "0.45rem 0.75rem", fontSize: "0.78rem" }}>
+              <AlertCircle size={15} />
+              <span>Insufficient token balance to supply this liquidity. Use Faucet!</span>
             </div>
           )}
 
           {/* Action Button */}
-          <div style={{ marginTop: "1.25rem" }}>
+          <div style={{ marginTop: "0.75rem" }}>
             {!account ? (
               <button className="btn-primary" style={{ width: "100%" }} onClick={connectWallet}>
                 Connect Wallet
@@ -327,8 +327,8 @@ export function LiquidityCard({
               <span>Amount of LP Shares to Burn</span>
               <span>Available: {formatTokenAmount(userLpBalance, 18, 4)} PLP</span>
             </div>
-            <div style={{ padding: "0.5rem 0" }}>
-              <div style={{ fontSize: "1.6rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>
+            <div style={{ padding: "0.3rem 0" }}>
+              <div style={{ fontSize: "1.4rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>
                 {removePercent}%
               </div>
               <input
@@ -337,17 +337,17 @@ export function LiquidityCard({
                 max="100"
                 value={removePercent}
                 onChange={(e) => setRemovePercent(Number(e.target.value))}
-                style={{ width: "100%", marginTop: "0.75rem", accentColor: "var(--accent-blue)", cursor: "pointer" }}
+                style={{ width: "100%", marginTop: "0.5rem", accentColor: "var(--accent-blue)", cursor: "pointer" }}
               />
             </div>
             {/* Quick percent buttons */}
-            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+            <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.4rem" }}>
               {[25, 50, 75, 100].map((pct) => (
                 <button
                   key={pct}
                   className={`slippage-btn ${removePercent === pct ? "active" : ""}`}
                   onClick={() => setRemovePercent(pct)}
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
                 >
                   {pct}%
                 </button>
@@ -367,7 +367,7 @@ export function LiquidityCard({
             </div>
           </div>
 
-          <div style={{ marginTop: "1.25rem" }}>
+          <div style={{ marginTop: "0.75rem" }}>
             {!account ? (
               <button className="btn-primary" style={{ width: "100%" }} onClick={connectWallet}>
                 Connect Wallet

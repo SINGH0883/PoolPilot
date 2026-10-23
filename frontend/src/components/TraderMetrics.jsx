@@ -35,80 +35,80 @@ export function TraderMetrics({ poolState, volumeStats }) {
   const formattedFees = `$${volumeStats.cumulativeFeesUSDC.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <div style={{ marginBottom: "1.5rem" }}>
+    <div style={{ marginBottom: "0.85rem" }}>
       {/* 4 Top KPI Stat Cards */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "1rem",
-          marginBottom: "1rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: "0.75rem",
+          marginBottom: "0.75rem",
         }}
       >
         {/* TVL */}
-        <div className="glass-panel" style={{ padding: "1.1rem" }}>
+        <div className="glass-panel" style={{ padding: "0.75rem 0.95rem" }}>
           <div className="stat-label">
-            <DollarSign size={15} color="var(--accent-blue)" />
+            <DollarSign size={14} color="var(--accent-blue)" />
             <span>Total Value Locked</span>
           </div>
-          <div className="stat-value" style={{ fontSize: "1.45rem" }}>
+          <div className="stat-value" style={{ fontSize: "1.25rem" }}>
             {formattedTVL}
           </div>
-          <div className="stat-sub">
+          <div className="stat-sub" style={{ fontSize: "0.74rem" }}>
             {formatTokenAmount(reserve0, token0.decimals, 2)} {token0.symbol} + {formatTokenAmount(reserve1, token1.decimals, 2)} {token1.symbol}
           </div>
         </div>
 
         {/* Cumulative Volume */}
-        <div className="glass-panel" style={{ padding: "1.1rem" }}>
+        <div className="glass-panel" style={{ padding: "0.75rem 0.95rem" }}>
           <div className="stat-label">
-            <BarChart3 size={15} color="var(--accent-cyan)" />
+            <BarChart3 size={14} color="var(--accent-cyan)" />
             <span>Total Volume Traded</span>
           </div>
-          <div className="stat-value" style={{ fontSize: "1.45rem" }}>
+          <div className="stat-value" style={{ fontSize: "1.25rem" }}>
             {formattedVolume}
           </div>
-          <div className="stat-sub">
+          <div className="stat-sub" style={{ fontSize: "0.74rem" }}>
             {volumeStats.totalSwapsCount} confirmed swaps
           </div>
         </div>
 
         {/* LP Fees Generated */}
-        <div className="glass-panel" style={{ padding: "1.1rem" }}>
+        <div className="glass-panel" style={{ padding: "0.75rem 0.95rem" }}>
           <div className="stat-label">
-            <Coins size={15} color="var(--accent-emerald)" />
+            <Coins size={14} color="var(--accent-emerald)" />
             <span>LP Fees Generated</span>
           </div>
-          <div className="stat-value" style={{ fontSize: "1.45rem", color: "var(--accent-emerald)" }}>
+          <div className="stat-value" style={{ fontSize: "1.25rem", color: "var(--accent-emerald)" }}>
             {formattedFees}
           </div>
-          <div className="stat-sub">
+          <div className="stat-sub" style={{ fontSize: "0.74rem" }}>
             0.30% fee retained in reserves
           </div>
         </div>
 
         {/* Indicative Rate */}
-        <div className="glass-panel" style={{ padding: "1.1rem" }}>
+        <div className="glass-panel" style={{ padding: "0.75rem 0.95rem" }}>
           <div className="stat-label">
-            <ArrowRightLeft size={15} color="var(--accent-violet)" />
+            <ArrowRightLeft size={14} color="var(--accent-violet)" />
             <span>Exchange Price</span>
           </div>
-          <div className="stat-value" style={{ fontSize: "1.45rem" }}>
+          <div className="stat-value" style={{ fontSize: "1.25rem" }}>
             ${formattedRate}
           </div>
-          <div className="stat-sub">
+          <div className="stat-sub" style={{ fontSize: "0.74rem" }}>
             1 {token1.symbol} = {formattedRate} {token0.symbol}
           </div>
         </div>
       </div>
 
       {/* Pool Reserve Ratio & Depth Meter */}
-      <div className="glass-panel" style={{ padding: "1.1rem 1.4rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-secondary)" }}>
+      <div className="glass-panel" style={{ padding: "0.75rem 1.15rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.45rem" }}>
+          <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-secondary)" }}>
             Pool Reserve Ratio & Asset Depth
           </span>
-          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 500 }}>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>
             Invariant: k = x × y
           </span>
         </div>

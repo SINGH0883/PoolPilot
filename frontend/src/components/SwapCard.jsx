@@ -18,6 +18,8 @@ export function SwapCard({
   onTxStart,
   onTxSuccess,
   onTxError,
+  price,
+  onViewAnalytics,
 }) {
   const { token0, token1, reserve0, reserve1, poolAddress } = poolState;
 
@@ -156,20 +158,57 @@ export function SwapCard({
   }
 
   return (
-    <div className="glass-panel" style={{ padding: "1.75rem", width: "100%", maxWidth: "480px", margin: "0 auto" }}>
+    <div className="glass-panel" style={{ padding: "1.15rem 1.35rem", width: "100%", maxWidth: "460px", margin: "0 auto" }}>
       {/* Swap Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.35rem", fontWeight: 700 }}>
-          Swap Tokens
-        </h2>
-        <button
-          className="btn-secondary"
-          style={{ padding: "0.5rem" }}
-          onClick={() => setShowSettings(!showSettings)}
-          title="Slippage Settings"
-        >
-          <Settings size={17} color={showSettings ? "var(--accent-blue)" : "var(--text-secondary)"} />
-        </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.85rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", fontWeight: 700 }}>
+            Swap
+          </h2>
+          <span
+            style={{
+              fontSize: "0.68rem",
+              background: "var(--pill-bg)",
+              color: "var(--pill-text)",
+              border: "1px solid var(--pill-border)",
+              padding: "0.12rem 0.45rem",
+              borderRadius: "var(--radius-full)",
+              fontWeight: 600,
+            }}
+          >
+            0.30% Fee
+          </span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          {price && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.25rem",
+                fontSize: "0.74rem",
+                color: "var(--text-secondary)",
+                fontWeight: 600,
+                background: "var(--tab-container-bg)",
+                border: "1px solid var(--tab-container-border)",
+                padding: "0.2rem 0.5rem",
+                borderRadius: "var(--radius-full)",
+              }}
+              title="Indicative Exchange Rate"
+            >
+              <span>1 {token1.symbol} ≈ ${price}</span>
+            </div>
+          )}
+          <button
+            className="btn-secondary"
+            style={{ padding: "0.3rem 0.45rem" }}
+            onClick={() => setShowSettings(!showSettings)}
+            title="Slippage Settings"
+          >
+            <Settings size={15} color={showSettings ? "var(--accent-blue)" : "var(--text-secondary)"} />
+          </button>
+        </div>
       </div>
 
       {/* Slippage Settings Drawer */}
@@ -179,15 +218,15 @@ export function SwapCard({
             background: "var(--details-box-bg)",
             border: "1px solid var(--details-box-border)",
             borderRadius: "var(--radius-md)",
-            padding: "0.9rem",
-            marginBottom: "1.25rem",
+            padding: "0.65rem 0.85rem",
+            marginBottom: "0.75rem",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: "0.35rem" }}>
             <span>Slippage Tolerance</span>
             <span>Current: {effectiveSlippage}%</span>
           </div>
-          <div className="slippage-bar">
+          <div className="slippage-bar" style={{ marginTop: "0.35rem" }}>
             {[0.1, 0.5, 1.0].map((val) => (
               <button
                 key={val}
@@ -210,9 +249,9 @@ export function SwapCard({
                 border: "1px solid var(--border-card)",
                 borderRadius: "var(--radius-sm)",
                 color: "var(--text-primary)",
-                fontSize: "0.8rem",
-                padding: "0.3rem 0.5rem",
-                width: "70px",
+                fontSize: "0.75rem",
+                padding: "0.25rem 0.45rem",
+                width: "65px",
                 outline: "none",
               }}
             />
@@ -342,14 +381,14 @@ export function SwapCard({
 
       {/* Insufficient balance warning */}
       {hasInsufficientBalance && (
-        <div className="alert-box alert-error" style={{ marginTop: "1rem", marginBottom: "0.5rem" }}>
-          <AlertCircle size={16} />
-          <span>Insufficient {inputToken.symbol} balance. Mint free tokens using the Faucet!</span>
+        <div className="alert-box alert-error" style={{ marginTop: "0.65rem", marginBottom: "0.25rem", padding: "0.45rem 0.75rem", fontSize: "0.78rem" }}>
+          <AlertCircle size={15} />
+          <span>Insufficient {inputToken.symbol} balance. Use Faucet!</span>
         </div>
       )}
 
       {/* Action Buttons */}
-      <div style={{ marginTop: "1.25rem" }}>
+      <div style={{ marginTop: "0.75rem" }}>
         {!account ? (
           <button className="btn-primary" style={{ width: "100%" }} onClick={connectWallet}>
             Connect Wallet to Trade
@@ -367,7 +406,7 @@ export function SwapCard({
           >
             {approving ? (
               <>
-                <Loader2 size={18} className="spin-icon" />
+                <Loader2 size={16} className="spin-icon" />
                 <span>Approving {inputToken.symbol}...</span>
               </>
             ) : (
@@ -383,7 +422,7 @@ export function SwapCard({
           >
             {swapping ? (
               <>
-                <Loader2 size={18} className="spin-icon" />
+                <Loader2 size={16} className="spin-icon" />
                 <span>Swapping...</span>
               </>
             ) : amountInBigInt <= 0n ? (
@@ -393,6 +432,51 @@ export function SwapCard({
             )}
           </button>
         )}
+      </div>
+
+      {/* Integrated Pool Depth Mini-Strip */}
+      <div
+        style={{
+          marginTop: "0.75rem",
+          paddingTop: "0.65rem",
+          borderTop: "1px solid var(--border-card)",
+          fontSize: "0.74rem",
+          color: "var(--text-muted)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
+          <span>
+            Reserves: <strong style={{ color: "var(--text-secondary)" }}>{formatTokenAmount(reserve0, token0.decimals, 0)} {token0.symbol}</strong> • <strong style={{ color: "var(--text-secondary)" }}>{formatTokenAmount(reserve1, token1.decimals, 1)} {token1.symbol}</strong>
+          </span>
+          {onViewAnalytics && (
+            <button
+              onClick={onViewAnalytics}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--accent-blue)",
+                fontSize: "0.73rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              Analytics →
+            </button>
+          )}
+        </div>
+        <div
+          style={{
+            height: "4px",
+            borderRadius: "var(--radius-full)",
+            background: "var(--tab-container-bg)",
+            overflow: "hidden",
+            display: "flex",
+          }}
+        >
+          <div style={{ width: "50%", background: "#2563EB" }} />
+          <div style={{ width: "50%", background: "#8B5CF6" }} />
+        </div>
       </div>
     </div>
   );

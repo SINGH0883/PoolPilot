@@ -17,7 +17,7 @@ export function ActivityLedger({ events, loading, onRefresh, account, chainId })
   });
 
   return (
-    <div className="glass-panel" style={{ padding: "1.25rem 1.4rem" }}>
+    <div className="glass-panel" style={{ padding: "0.85rem 1.15rem" }}>
       {/* Header and Filter Controls */}
       <div
         style={{
@@ -113,15 +113,15 @@ export function ActivityLedger({ events, loading, onRefresh, account, chainId })
           </div>
         </div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--border-card)", color: "var(--text-muted)", fontSize: "0.75rem", textTransform: "uppercase", textAlign: "left" }}>
-                <th style={{ padding: "0.6rem 0.75rem" }}>Action</th>
-                <th style={{ padding: "0.6rem 0.75rem" }}>Amount / Trade Details</th>
-                <th style={{ padding: "0.6rem 0.75rem" }}>Execution Rate</th>
-                <th style={{ padding: "0.6rem 0.75rem" }}>Account</th>
-                <th style={{ padding: "0.6rem 0.75rem", textAlign: "right" }}>Tx Hash</th>
+        <div style={{ overflowX: "auto", maxHeight: "calc(100vh - 340px)", overflowY: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+            <thead style={{ position: "sticky", top: 0, background: "var(--bg-card)", zIndex: 2 }}>
+              <tr style={{ borderBottom: "1px solid var(--border-card)", color: "var(--text-muted)", fontSize: "0.74rem", textTransform: "uppercase", textAlign: "left" }}>
+                <th style={{ padding: "0.5rem 0.7rem" }}>Action</th>
+                <th style={{ padding: "0.5rem 0.7rem" }}>Amount / Trade Details</th>
+                <th style={{ padding: "0.5rem 0.7rem" }}>Execution Rate</th>
+                <th style={{ padding: "0.5rem 0.7rem" }}>Account</th>
+                <th style={{ padding: "0.5rem 0.7rem", textAlign: "right" }}>Tx Hash</th>
               </tr>
             </thead>
             <tbody>

@@ -220,12 +220,16 @@
   box-sizing: border-box;
 }
 
+html, body, #root {
+  height: 100%;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
 body {
   background-color: var(--bg-page);
   color: var(--text-primary);
   font-family: var(--font-main);
-  min-height: 100vh;
-  overflow-x: hidden;
   background-image: var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
@@ -234,10 +238,11 @@ body {
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-page);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
@@ -276,7 +281,7 @@ body {
 .top-navbar-inner {
   max-width: 1360px;
   margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  padding: 0.45rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -288,20 +293,20 @@ body {
   background: var(--tab-container-bg);
   border: 1px solid var(--tab-container-border);
   border-radius: var(--radius-full);
-  padding: 0.22rem;
-  gap: 0.25rem;
+  padding: 0.2rem;
+  gap: 0.2rem;
 }
 
 .nav-pill-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-full);
-  padding: 0.45rem 1.15rem;
+  padding: 0.35rem 0.95rem;
   font-family: var(--font-main);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 600;
   color: var(--tab-btn-text);
   cursor: pointer;
@@ -322,14 +327,14 @@ body {
 .brand-badge {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   text-decoration: none;
 }
 
 .brand-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
   background: var(--brand-icon-gradient);
   display: flex;
   align-items: center;
@@ -344,23 +349,23 @@ body {
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 1.45rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--brand-title-color);
 }
 
 .brand-tag {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--brand-tag-text);
   background: var(--brand-tag-bg);
   border: 1px solid var(--brand-tag-border);
-  padding: 0.15rem 0.5rem;
+  padding: 0.1rem 0.45rem;
   border-radius: var(--radius-sm);
-  margin-left: 0.5rem;
+  margin-left: 0.4rem;
 }
 
 /* Buttons */
@@ -370,8 +375,8 @@ body {
   border: none;
   font-family: var(--font-main);
   font-weight: 600;
-  font-size: 0.95rem;
-  padding: 0.75rem 1.4rem;
+  font-size: 0.9rem;
+  padding: 0.65rem 1.2rem;
   border-radius: var(--radius-md);
   cursor: pointer;
   display: inline-flex;
@@ -404,13 +409,13 @@ body {
   border: 1px solid var(--btn-secondary-border);
   font-family: var(--font-main);
   font-weight: 500;
-  font-size: 0.9rem;
-  padding: 0.6rem 1rem;
+  font-size: 0.84rem;
+  padding: 0.42rem 0.8rem;
   border-radius: var(--radius-md);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
@@ -424,11 +429,11 @@ body {
 .tab-container {
   display: flex;
   background: var(--tab-container-bg);
-  padding: 0.35rem;
+  padding: 0.22rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--tab-container-border);
-  gap: 0.35rem;
-  margin-bottom: 1.5rem;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .tab-btn {
@@ -438,14 +443,14 @@ body {
   border: none;
   font-family: var(--font-main);
   font-weight: 600;
-  font-size: 0.92rem;
-  padding: 0.6rem;
+  font-size: 0.85rem;
+  padding: 0.45rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   transition: all 0.2s ease;
 }
 
@@ -465,8 +470,8 @@ body {
   background: var(--bg-input);
   border: 1px solid var(--border-input);
   border-radius: var(--radius-md);
-  padding: 1.1rem;
-  margin-bottom: 0.65rem;
+  padding: 0.75rem 0.95rem;
+  margin-bottom: 0.35rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -479,8 +484,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.65rem;
-  font-size: 0.82rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
 }
 
@@ -499,7 +504,7 @@ body {
 .token-input-body {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .token-amount-input {
@@ -508,7 +513,7 @@ body {
   border: none;
   color: var(--text-primary);
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 600;
   outline: none;
   width: 100%;
@@ -521,14 +526,14 @@ body {
 .token-badge {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   background: var(--token-badge-bg);
   border: 1px solid var(--token-badge-border);
   color: var(--token-badge-text);
-  padding: 0.45rem 0.8rem;
+  padding: 0.32rem 0.7rem;
   border-radius: var(--radius-full);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
@@ -536,7 +541,7 @@ body {
 .flip-btn-wrap {
   display: flex;
   justify-content: center;
-  margin: -0.4rem 0;
+  margin: -0.35rem 0;
   position: relative;
   z-index: 2;
 }
@@ -545,8 +550,8 @@ body {
   background: var(--flip-btn-bg);
   border: 2px solid var(--flip-btn-border);
   color: var(--flip-btn-color);
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
@@ -557,7 +562,7 @@ body {
 }
 
 .flip-btn:hover {
-  transform: rotate(180deg) scale(1.12);
+  transform: rotate(180deg) scale(1.1);
   border-color: var(--accent-blue);
   background: var(--flip-btn-hover-bg);
 }
@@ -567,12 +572,12 @@ body {
   background: var(--details-box-bg);
   border: 1px solid var(--details-box-border);
   border-radius: var(--radius-md);
-  padding: 0.9rem 1.1rem;
-  margin-top: 1rem;
+  padding: 0.6rem 0.85rem;
+  margin-top: 0.65rem;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  font-size: 0.84rem;
+  gap: 0.35rem;
+  font-size: 0.78rem;
 }
 
 .detail-row {
