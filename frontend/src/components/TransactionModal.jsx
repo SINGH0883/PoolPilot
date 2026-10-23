@@ -65,7 +65,7 @@ export function TransactionModal({ txState, onClose, chainId }) {
           {txState.status === "success" && (
             <div>
               <CheckCircle2 size={54} color="var(--accent-emerald)" style={{ margin: "0 auto 1.25rem auto" }} />
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", marginBottom: "0.5rem", color: "#FFFFFF" }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", marginBottom: "0.5rem", color: "var(--text-primary)" }}>
                 Transaction Successful!
               </h3>
               <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: "1.25rem" }}>
@@ -80,7 +80,7 @@ export function TransactionModal({ txState, onClose, chainId }) {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "0.4rem",
-                    color: "var(--accent-cyan)",
+                    color: "var(--accent-blue)",
                     fontSize: "0.85rem",
                     textDecoration: "none",
                     marginBottom: "1.25rem",
@@ -102,7 +102,7 @@ export function TransactionModal({ txState, onClose, chainId }) {
           {txState.status === "error" && (
             <div>
               <XCircle size={54} color="var(--accent-rose)" style={{ margin: "0 auto 1.25rem auto" }} />
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", marginBottom: "0.5rem", color: "#FFFFFF" }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", marginBottom: "0.5rem", color: "var(--text-primary)" }}>
                 Transaction Failed
               </h3>
               <div

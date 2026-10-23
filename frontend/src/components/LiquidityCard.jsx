@@ -337,7 +337,7 @@ export function LiquidityCard({
                 max="100"
                 value={removePercent}
                 onChange={(e) => setRemovePercent(Number(e.target.value))}
-                style={{ width: "100%", marginTop: "0.75rem", accentColor: "var(--accent-cyan)", cursor: "pointer" }}
+                style={{ width: "100%", marginTop: "0.75rem", accentColor: "var(--accent-blue)", cursor: "pointer" }}
               />
             </div>
             {/* Quick percent buttons */}

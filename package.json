@@ -8,8 +8,10 @@
     "test:contracts": "npm --prefix contracts test",
     "test:frontend": "npm --prefix frontend test",
     "compile": "npm --prefix contracts run compile",
+    "node": "npm --prefix contracts run node",
     "deploy:local": "npm --prefix contracts run deploy:local",
     "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
     "build:frontend": "npm --prefix frontend run build"
   },
   "keywords": [

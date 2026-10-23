@@ -1,5 +1,5 @@
 import React from "react";
-import { Waves, Wallet, Droplets, ExternalLink, RefreshCw, PowerOff } from "lucide-react";
+import { Waves, Wallet, Droplets, RefreshCw, PowerOff, Sun, Moon } from "lucide-react";
 import { shortenAddress, SUPPORTED_NETWORKS } from "../lib/ethereum";
 
 export function Header({
@@ -11,6 +11,8 @@ export function Header({
   openFaucet,
   onRefresh,
   loading,
+  theme,
+  toggleTheme,
 }) {
   const currentNetwork = chainId ? SUPPORTED_NETWORKS[chainId] : null;
 
@@ -25,13 +27,23 @@ export function Header({
             <span className="brand-title">PoolPilot</span>
             <span className="brand-tag">AMM v1</span>
           </div>
-          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "1px" }}>
             Constant-Product Liquidity Protocol
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+        {/* Theme Toggle Button */}
+        <button
+          className="btn-secondary"
+          onClick={toggleTheme}
+          title={theme === "light" ? "Switch to Dark Theme" : "Switch to Minimal White & Blue Theme"}
+          style={{ padding: "0.6rem" }}
+        >
+          {theme === "light" ? <Moon size={16} color="var(--accent-blue)" /> : <Sun size={16} color="var(--accent-cyan)" />}
+        </button>
+
         {/* Refresh Pool Data Button */}
         <button
           className="btn-secondary"
@@ -39,12 +51,12 @@ export function Header({
           title="Refresh Pool State"
           style={{ padding: "0.6rem" }}
         >
-          <RefreshCw size={16} className={loading ? "spin-icon" : ""} />
+          <RefreshCw size={16} className={loading ? "spin-icon" : ""} color="var(--text-secondary)" />
         </button>
 
         {/* Faucet Button */}
-        <button className="btn-secondary" onClick={openFaucet} title="Mint test tokens">
-          <Droplets size={16} color="var(--accent-cyan)" />
+        <button className="btn-secondary" onClick={openFaucet} title="Mint free test tokens">
+          <Droplets size={16} color="var(--accent-blue)" />
           <span>Faucet</span>
         </button>
 
@@ -54,13 +66,14 @@ export function Header({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "0.4rem",
-              background: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid var(--border-glass)",
+              gap: "0.45rem",
+              background: "var(--badge-network-bg)",
+              border: "1px solid var(--badge-network-border)",
               padding: "0.5rem 0.85rem",
               borderRadius: "var(--radius-md)",
               fontSize: "0.82rem",
-              color: "var(--text-secondary)",
+              color: "var(--badge-network-text)",
+              fontWeight: 500,
             }}
           >
             <span
@@ -69,7 +82,7 @@ export function Header({
                 height: "8px",
                 borderRadius: "50%",
                 background: currentNetwork ? "var(--accent-emerald)" : "var(--accent-rose)",
-                boxShadow: currentNetwork ? "0 0 8px var(--accent-emerald)" : "none",
+                boxShadow: currentNetwork ? "0 0 6px var(--accent-emerald)" : "none",
               }}
             />
             <span>{currentNetwork ? currentNetwork.name : `Chain #${chainId}`}</span>
@@ -84,13 +97,13 @@ export function Header({
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem",
-                background: "rgba(6, 182, 212, 0.12)",
-                border: "1px solid rgba(6, 182, 212, 0.3)",
+                background: "var(--pill-bg)",
+                border: "1px solid var(--pill-border)",
                 padding: "0.55rem 0.95rem",
                 borderRadius: "var(--radius-md)",
                 fontSize: "0.85rem",
                 fontWeight: 600,
-                color: "#FFFFFF",
+                color: "var(--pill-text)",
               }}
             >
               <span
@@ -98,7 +111,7 @@ export function Header({
                   width: "8px",
                   height: "8px",
                   borderRadius: "50%",
-                  background: "var(--accent-cyan)",
+                  background: "var(--accent-blue)",
                 }}
               />
               {shortenAddress(account)}

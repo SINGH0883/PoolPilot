@@ -176,8 +176,8 @@ export function SwapCard({
       {showSettings && (
         <div
           style={{
-            background: "rgba(10, 15, 29, 0.7)",
-            border: "1px solid var(--border-glass)",
+            background: "var(--details-box-bg)",
+            border: "1px solid var(--details-box-border)",
             borderRadius: "var(--radius-md)",
             padding: "0.9rem",
             marginBottom: "1.25rem",
@@ -206,10 +206,10 @@ export function SwapCard({
               value={customSlippage}
               onChange={(e) => setCustomSlippage(e.target.value)}
               style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid var(--border-glass)",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-card)",
                 borderRadius: "var(--radius-sm)",
-                color: "#FFFFFF",
+                color: "var(--text-primary)",
                 fontSize: "0.8rem",
                 padding: "0.3rem 0.5rem",
                 width: "70px",
@@ -259,10 +259,11 @@ export function SwapCard({
               key={pct}
               onClick={() => handleQuickPercent(pct)}
               style={{
-                background: "rgba(255, 255, 255, 0.04)",
-                border: "none",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-card)",
                 borderRadius: "4px",
-                color: "var(--text-muted)",
+                color: "var(--accent-blue)",
+                fontWeight: 600,
                 fontSize: "0.72rem",
                 padding: "0.2rem 0.45rem",
                 cursor: "pointer",

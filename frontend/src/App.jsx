@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ArrowLeftRight, Droplet, ShieldAlert, Heart } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ArrowLeftRight, Droplet } from "lucide-react";
 import { useWallet } from "./hooks/useWallet";
 import { usePoolData } from "./hooks/usePoolData";
 import { Header } from "./components/Header";
@@ -23,6 +23,20 @@ export function App() {
   } = useWallet();
 
   const { poolState, loading, error: poolError, refresh } = usePoolData(provider, account);
+
+  // Minimal White & Blue theme as default
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("poolpilot_theme") || "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("poolpilot_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
 
   const [activeTab, setActiveTab] = useState("swap"); // "swap" | "pool"
   const [faucetOpen, setFaucetOpen] = useState(false);
@@ -75,6 +89,8 @@ export function App() {
         openFaucet={() => setFaucetOpen(true)}
         onRefresh={refresh}
         loading={loading}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       {/* Mandatory Hackathon Disclaimer */}
@@ -136,21 +152,21 @@ export function App() {
       {/* Footer */}
       <footer
         style={{
-          borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+          borderTop: "1px solid var(--header-border)",
           padding: "1.75rem 2rem",
           textAlign: "center",
           color: "var(--text-muted)",
           fontSize: "0.82rem",
         }}
       >
-        <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
           <div>
             <strong>PoolPilot</strong> — Constant-Product Automated Market Maker
           </div>
           <div>
             Built by <strong>Team 404</strong>: Yuvraj Kumar (Data & Reserves) • Yash Singh (UI/UX) • Alwin Mathew (Backend & On-Chain)
           </div>
-          <div style={{ color: "rgba(148, 163, 184, 0.45)", fontSize: "0.75rem" }}>
+          <div style={{ color: "var(--text-subtle)", fontSize: "0.75rem" }}>
             Solidity 0.8.24 • OpenZeppelin v5 SafeERC20 • Constant Product x * y = k • 0.30% Fee Tier
           </div>
         </div>

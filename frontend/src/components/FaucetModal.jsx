@@ -71,13 +71,13 @@ export function FaucetModal({ isOpen, onClose, poolState, signer, account, onMin
               width: "40px",
               height: "40px",
               borderRadius: "var(--radius-md)",
-              background: "rgba(6, 182, 212, 0.15)",
+              background: "var(--pill-bg)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Droplets size={22} color="var(--accent-cyan)" />
+            <Droplets size={22} color="var(--accent-blue)" />
           </div>
           <div>
             <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem" }}>
