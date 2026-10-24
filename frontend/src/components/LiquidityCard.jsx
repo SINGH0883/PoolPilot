@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import { PlusCircle, MinusCircle, AlertCircle, Loader2 } from "lucide-react";
+import { PlusCircle, MinusCircle, AlertCircle, Loader2, Droplets } from "lucide-react";
 import { POOL_ABI, ERC20_ABI } from "../config/abis";
 import {
   formatTokenAmount,
@@ -15,9 +15,11 @@ export function LiquidityCard({
   account,
   provider,
   connectWallet,
+  openFaucet,
   onTxStart,
   onTxSuccess,
   onTxError,
+  liveMarket,
 }) {
   const { token0, token1, reserve0, reserve1, totalLpSupply, userLpBalance, poolAddress } = poolState;
 
@@ -29,21 +31,31 @@ export function LiquidityCard({
   const [approving1, setApproving1] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const isUnseeded = reserve0 === 0n || reserve1 === 0n;
+  const livePrice = liveMarket?.marketData?.price || 2370.0;
+
   const amount0BigInt = parseTokenAmount(amount0Str, token0.decimals);
   const amount1BigInt = parseTokenAmount(amount1Str, token1.decimals);
 
   // Proportional calculation for Add Liquidity
   const handleAmount0Change = (val) => {
     setAmount0Str(val);
-    if (!val || isNaN(Number(val)) || Number(val) <= 0 || reserve0 === 0n || reserve1 === 0n) {
+    if (!val || isNaN(Number(val)) || Number(val) <= 0) {
       if (!val) setAmount1Str("");
       return;
     }
     try {
-      const a0 = ethers.parseUnits(val, token0.decimals);
-      // proportional amount1 = a0 * reserve1 / reserve0
-      const a1 = (a0 * reserve1) / reserve0;
-      setAmount1Str(ethers.formatUnits(a1, token1.decimals));
+      if (reserve0 > 0n && reserve1 > 0n) {
+        const a0 = ethers.parseUnits(val, token0.decimals);
+        // proportional amount1 = a0 * reserve1 / reserve0
+        const a1 = (a0 * reserve1) / reserve0;
+        setAmount1Str(ethers.formatUnits(a1, token1.decimals));
+      } else {
+        // Pool uninitialized: auto-calibrate to LIVE market price!
+        const num0 = Number(val);
+        const num1 = num0 / livePrice;
+        setAmount1Str(num1 > 0 ? num1.toFixed(4) : "");
+      }
     } catch {
       // ignore parse errors
     }
@@ -51,15 +63,22 @@ export function LiquidityCard({
 
   const handleAmount1Change = (val) => {
     setAmount1Str(val);
-    if (!val || isNaN(Number(val)) || Number(val) <= 0 || reserve0 === 0n || reserve1 === 0n) {
+    if (!val || isNaN(Number(val)) || Number(val) <= 0) {
       if (!val) setAmount0Str("");
       return;
     }
     try {
-      const a1 = ethers.parseUnits(val, token1.decimals);
-      // proportional amount0 = a1 * reserve0 / reserve1
-      const a0 = (a1 * reserve0) / reserve1;
-      setAmount0Str(ethers.formatUnits(a0, token0.decimals));
+      if (reserve0 > 0n && reserve1 > 0n) {
+        const a1 = ethers.parseUnits(val, token1.decimals);
+        // proportional amount0 = a1 * reserve0 / reserve1
+        const a0 = (a1 * reserve0) / reserve1;
+        setAmount0Str(ethers.formatUnits(a0, token0.decimals));
+      } else {
+        // Pool uninitialized: auto-calibrate to LIVE market price!
+        const num1 = Number(val);
+        const num0 = num1 * livePrice;
+        setAmount0Str(num0 > 0 ? num0.toFixed(2) : "");
+      }
     } catch {
       // ignore parse errors
     }
@@ -209,6 +228,18 @@ export function LiquidityCard({
 
       {activeTab === "add" ? (
         <div>
+          {isUnseeded && (
+            <div className="pool-unseeded-banner" style={{ marginBottom: "0.75rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <span className="live-pulse-dot" />
+                <span style={{ fontWeight: 700 }}>Initial Liquidity Auto-Calibration</span>
+              </div>
+              <div style={{ fontSize: "0.74rem", color: "var(--text-secondary)" }}>
+                Pool reserves are empty. Deposit amounts are auto-synced to live Binance spot: <strong>1 {token1.symbol} = ${livePrice.toFixed(2)} {token0.symbol}</strong>.
+              </div>
+            </div>
+          )}
+
           {/* Token 0 Input */}
           <div className="token-input-card">
             <div className="token-input-header">
@@ -277,9 +308,32 @@ export function LiquidityCard({
 
           {/* Error messages */}
           {(insufficient0 || insufficient1) && (
-            <div className="alert-box alert-error" style={{ marginTop: "0.65rem", padding: "0.45rem 0.75rem", fontSize: "0.78rem" }}>
-              <AlertCircle size={15} />
-              <span>Insufficient token balance to supply this liquidity. Use Faucet!</span>
+            <div className="alert-box alert-error" style={{ marginTop: "0.65rem", padding: "0.5rem 0.75rem", fontSize: "0.78rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <AlertCircle size={15} />
+                <span>Insufficient token balance to supply this liquidity.</span>
+              </div>
+              {openFaucet && (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{
+                    padding: "0.25rem 0.65rem",
+                    fontSize: "0.75rem",
+                    background: "rgba(244, 63, 94, 0.2)",
+                    border: "1px solid rgba(244, 63, 94, 0.4)",
+                    color: "#FECDD3",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                  }}
+                  onClick={openFaucet}
+                >
+                  <Droplets size={12} />
+                  <span>Use Faucet</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -288,6 +342,15 @@ export function LiquidityCard({
             {!account ? (
               <button className="btn-primary" style={{ width: "100%" }} onClick={connectWallet}>
                 Connect Wallet
+              </button>
+            ) : (insufficient0 || insufficient1) ? (
+              <button
+                className="btn-primary"
+                style={{ width: "100%", background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)" }}
+                onClick={openFaucet}
+              >
+                <Droplets size={16} style={{ marginRight: "6px" }} />
+                Mint Free Test Tokens (Faucet)
               </button>
             ) : needsApproval0 ? (
               <button
@@ -312,7 +375,7 @@ export function LiquidityCard({
                 className="btn-primary"
                 style={{ width: "100%" }}
                 onClick={handleAddLiquidity}
-                disabled={submitting || amount0BigInt <= 0n || amount1BigInt <= 0n || insufficient0 || insufficient1}
+                disabled={submitting || amount0BigInt <= 0n || amount1BigInt <= 0n}
               >
                 {submitting ? "Supplying Liquidity..." : "Supply Liquidity"}
               </button>

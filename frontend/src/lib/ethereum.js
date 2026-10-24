@@ -76,8 +76,19 @@ export function parseContractError(error) {
     if (errorStr.includes("ERC20InsufficientAllowance")) return "Insufficient allowance. Please approve the token first.";
   }
   if (error.message) {
-    if (error.message.includes("user rejected action")) return "Transaction rejected by user.";
-    if (error.message.includes("insufficient funds")) return "Insufficient gas funds (ETH) in account.";
+    if (error.message.includes("user rejected action") || error.message.includes("User rejected")) {
+      return "Transaction rejected by user.";
+    }
+    if (error.message.includes("insufficient funds")) {
+      return "Insufficient gas funds (ETH) in account to pay transaction fee.";
+    }
+    if (
+      error.message.includes("Failed to fetch") ||
+      error.message.includes("fetch failed") ||
+      error.code === "SERVER_ERROR"
+    ) {
+      return "Unable to reach RPC node at http://127.0.0.1:8545. Please check that your local Hardhat/Anvil node is running.";
+    }
     if (error.message.length < 120) return error.message;
   }
   return "Transaction reverted by the smart contract.";

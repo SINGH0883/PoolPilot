@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
-import { ArrowDownUp, Settings, AlertCircle, Check, Loader2 } from "lucide-react";
+import { ArrowDownUp, Settings, AlertCircle, Check, Loader2, Droplets } from "lucide-react";
 import { POOL_ABI, ERC20_ABI } from "../config/abis";
 import {
   formatTokenAmount,
@@ -15,11 +15,14 @@ export function SwapCard({
   account,
   provider,
   connectWallet,
+  openFaucet,
   onTxStart,
   onTxSuccess,
   onTxError,
   price,
   onViewAnalytics,
+  onSwitchToPool,
+  liveMarket,
 }) {
   const { token0, token1, reserve0, reserve1, poolAddress } = poolState;
 
@@ -38,6 +41,14 @@ export function SwapCard({
   const outputToken = isToken0In ? token1 : token0;
   const inputReserve = isToken0In ? reserve0 : reserve1;
   const outputReserve = isToken0In ? reserve1 : reserve0;
+
+  const isUnseeded = inputReserve === 0n || outputReserve === 0n;
+  const livePriceNum = liveMarket?.marketData?.price || Number(String(price).replace(/,/g, "")) || 2370.0;
+  let referenceOut = "0.0";
+  if (isUnseeded && amountInStr && Number(amountInStr) > 0) {
+    const n = Number(amountInStr);
+    referenceOut = isToken0In ? (n / livePriceNum).toFixed(5) : (n * livePriceNum).toFixed(2);
+  }
 
   const amountInBigInt = parseTokenAmount(amountInStr, inputToken.decimals);
   const hasInsufficientBalance = account && amountInBigInt > inputToken.userBalance;
@@ -181,25 +192,13 @@ export function SwapCard({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-          {price && (
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.25rem",
-                fontSize: "0.74rem",
-                color: "var(--text-secondary)",
-                fontWeight: 600,
-                background: "var(--tab-container-bg)",
-                border: "1px solid var(--tab-container-border)",
-                padding: "0.2rem 0.5rem",
-                borderRadius: "var(--radius-full)",
-              }}
-              title="Indicative Exchange Rate"
-            >
-              <span>1 {token1.symbol} ≈ ${price}</span>
-            </div>
-          )}
+          <div
+            className="live-rate-pill"
+            title="Real-time Live Market Exchange Rate from Binance"
+          >
+            <span className="live-pulse-dot" style={{ width: "6px", height: "6px" }} />
+            <span>1 {token1.symbol} ≈ ${liveMarket?.marketData?.priceFormatted || price}</span>
+          </div>
           <button
             className="btn-secondary"
             style={{ padding: "0.3rem 0.45rem" }}
@@ -335,7 +334,15 @@ export function SwapCard({
             className="token-amount-input"
             placeholder="0.0"
             readOnly
-            value={quoting ? "Quoting..." : formatTokenAmount(estimatedOut, outputToken.decimals, 6)}
+            value={
+              quoting
+                ? "Quoting..."
+                : estimatedOut > 0n
+                ? formatTokenAmount(estimatedOut, outputToken.decimals, 6)
+                : isUnseeded && Number(amountInStr) > 0
+                ? `~${referenceOut} (Live Ref)`
+                : "0.0"
+            }
           />
           <div className="token-badge">
             <span
@@ -350,6 +357,24 @@ export function SwapCard({
           </div>
         </div>
       </div>
+
+      {/* Unseeded Pool Alert Banner */}
+      {isUnseeded && (
+        <div className="pool-unseeded-banner" style={{ marginTop: "0.65rem", marginBottom: "0.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <AlertCircle size={14} color="var(--accent-amber)" />
+            <span style={{ fontWeight: 600 }}>Pool Reserves are Unseeded (0 {token0.symbol} · 0 {token1.symbol})</span>
+          </div>
+          <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>
+            Quotes shown are calculated from live Binance market spot (${livePriceNum.toFixed(2)}). Switch to Liquidity Pool to provide initial on-chain liquidity!
+          </div>
+          {onSwitchToPool && (
+            <button onClick={onSwitchToPool} className="btn-seed-link">
+              Deposit Initial Liquidity in Pool →
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Swap Details Summary */}
       {amountInBigInt > 0n && estimatedOut > 0n && (
@@ -381,9 +406,32 @@ export function SwapCard({
 
       {/* Insufficient balance warning */}
       {hasInsufficientBalance && (
-        <div className="alert-box alert-error" style={{ marginTop: "0.65rem", marginBottom: "0.25rem", padding: "0.45rem 0.75rem", fontSize: "0.78rem" }}>
-          <AlertCircle size={15} />
-          <span>Insufficient {inputToken.symbol} balance. Use Faucet!</span>
+        <div className="alert-box alert-error" style={{ marginTop: "0.65rem", marginBottom: "0.25rem", padding: "0.5rem 0.75rem", fontSize: "0.78rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <AlertCircle size={15} />
+            <span>Insufficient {inputToken.symbol} balance.</span>
+          </div>
+          {openFaucet && (
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{
+                padding: "0.25rem 0.65rem",
+                fontSize: "0.75rem",
+                background: "rgba(244, 63, 94, 0.2)",
+                border: "1px solid rgba(244, 63, 94, 0.4)",
+                color: "#FECDD3",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.3rem",
+              }}
+              onClick={openFaucet}
+            >
+              <Droplets size={12} />
+              <span>Use Faucet</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -393,9 +441,22 @@ export function SwapCard({
           <button className="btn-primary" style={{ width: "100%" }} onClick={connectWallet}>
             Connect Wallet to Trade
           </button>
+        ) : isUnseeded ? (
+          <button
+            className="btn-primary"
+            style={{ width: "100%", background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)" }}
+            onClick={onSwitchToPool}
+          >
+            Deposit Initial Liquidity in Pool
+          </button>
         ) : hasInsufficientBalance ? (
-          <button className="btn-primary" style={{ width: "100%" }} disabled>
-            Insufficient {inputToken.symbol} Balance
+          <button
+            className="btn-primary"
+            style={{ width: "100%", background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)" }}
+            onClick={openFaucet}
+          >
+            <Droplets size={16} style={{ marginRight: "6px" }} />
+            Mint Free {inputToken.symbol} (Faucet)
           </button>
         ) : needsApproval ? (
           <button

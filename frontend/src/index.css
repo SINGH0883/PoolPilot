@@ -747,12 +747,17 @@ body {
 .market-ticker-inner {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 0.35rem 1.25rem;
+  padding: 0.35rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.85rem;
+  gap: 0.75rem;
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.market-ticker-inner::-webkit-scrollbar {
+  display: none;
 }
 
 .ticker-item {
@@ -773,21 +778,65 @@ body {
 }
 
 .token-dot {
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   border: 1.5px solid var(--bg-card);
+  flex-shrink: 0;
 }
 
-.token-dot-eth {
+.token-dot-eth, .token-dot-weth {
   background: #627EEA;
-  z-index: 2;
+}
+
+.token-dot-btc, .token-dot-wbtc {
+  background: #F7931A;
+}
+
+.token-dot-sol {
+  background: #14F195;
 }
 
 .token-dot-usdc {
   background: #2775CA;
-  margin-left: -5px;
-  z-index: 1;
+}
+
+/* Pair Toggle Pills Group */
+.pair-pill-group {
+  display: flex;
+  align-items: center;
+  background: var(--tab-container-bg);
+  border: 1px solid var(--tab-container-border);
+  border-radius: var(--radius-sm);
+  padding: 0.12rem;
+  gap: 0.15rem;
+}
+
+.pair-toggle-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0.2rem 0.55rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pair-toggle-pill:hover {
+  color: var(--text-primary);
+}
+
+.pair-toggle-pill.active {
+  background: var(--bg-card);
+  color: var(--accent-blue);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .pair-title {
@@ -1062,12 +1111,16 @@ body {
   min-height: 160px;
   position: relative;
   width: 100%;
+  cursor: crosshair;
+  user-select: none;
+  touch-action: none;
 }
 
 .chart-svg {
   width: 100%;
   height: 100%;
   overflow: visible;
+  display: block;
 }
 
 /* Bonding Curve Visualizer */
@@ -1309,5 +1362,231 @@ body {
 
 .spin-icon {
   animation: spin 1s linear infinite;
+}
+
+/* ==========================================================================
+   Live Market & Candlestick Enhanced UI Styles
+   ========================================================================== */
+
+/* Price Tick Flash Effects */
+@keyframes tickGlowUp {
+  0% { color: #10B981; transform: scale(1.02); text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
+  100% { color: var(--text-primary); transform: scale(1); text-shadow: none; }
+}
+
+@keyframes tickGlowDown {
+  0% { color: #EF4444; transform: scale(1.02); text-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+  100% { color: var(--text-primary); transform: scale(1); text-shadow: none; }
+}
+
+.tick-flash-up {
+  animation: tickGlowUp 1.1s ease-out;
+}
+
+.tick-flash-down {
+  animation: tickGlowDown 1.1s ease-out;
+}
+
+/* Live Market Source Indicator */
+.live-source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #10B981;
+}
+
+.live-pulse-dot {
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+  animation: pulse-beacon 1.5s infinite ease-in-out;
+}
+
+/* Chart Visual Style Switcher (Area vs Candlestick) */
+.chart-style-switcher {
+  display: flex;
+  background: var(--tab-container-bg);
+  border: 1px solid var(--tab-container-border);
+  border-radius: var(--radius-sm);
+  padding: 0.15rem;
+  gap: 0.15rem;
+}
+
+.chart-style-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.2rem 0.35rem;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.chart-style-btn:hover {
+  color: var(--text-primary);
+}
+
+.chart-style-btn.active {
+  background: var(--bg-card);
+  color: var(--accent-blue);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Live Rate Pill in Swap & Liquidity Cards */
+.live-rate-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  background: var(--tab-container-bg);
+  border: 1px solid var(--tab-container-border);
+  padding: 0.22rem 0.55rem;
+  border-radius: var(--radius-full);
+}
+
+/* Unseeded Pool Alert Banner */
+.pool-unseeded-banner {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.76rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.btn-seed-link {
+  background: transparent;
+  border: none;
+  color: var(--accent-blue);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.76rem;
+  text-align: left;
+  transition: opacity 0.2s;
+}
+
+.btn-seed-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.font-mono {
+  font-family: monospace;
+}
+
+/* Wallet Connection Modal Options */
+.wallet-option-item:hover {
+  border-color: var(--accent-blue) !important;
+  background: var(--bg-card) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Full-Screen Login Landing Page (Type: Vector Concept Landing Page) */
+.login-fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-page);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.login-fullscreen-header {
+  height: 64px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  border-bottom: 1px solid var(--border-glass);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+
+.login-fullscreen-body {
+  flex: 1;
+  display: flex;
+  width: 100%;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.login-fullscreen-left {
+  flex: 1.15;
+  padding: 2.2rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(150deg, rgba(2, 132, 199, 0.08) 0%, rgba(37, 99, 235, 0.04) 50%, rgba(16, 185, 129, 0.03) 100%);
+  border-right: 1px solid var(--border-glass);
+  overflow-y: auto;
+  position: relative;
+}
+
+.login-fullscreen-right {
+  flex: 1;
+  padding: 2.2rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-page);
+  overflow-y: auto;
+  position: relative;
+}
+
+.login-form-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 2.2rem;
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.09);
+}
+
+@media (max-width: 960px) {
+  .login-fullscreen-header {
+    padding: 0 1.25rem;
+  }
+  .login-fullscreen-body {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+  }
+  .login-fullscreen-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border-glass);
+    padding: 2rem 1.5rem;
+    align-items: center;
+    text-align: center;
+  }
+  .login-fullscreen-right {
+    padding: 2rem 1.5rem;
+  }
 }
 
