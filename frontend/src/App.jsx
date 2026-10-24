@@ -120,7 +120,7 @@ export function App() {
   const price = r0 > 0 && r1 > 0 ? (r0 / r1).toFixed(2) : (liveMarket.marketData.priceFormatted || "2,370.00");
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxHeight: "100vh", overflow: "hidden" }}>
+    <div className="app-root-container">
       {/* Full-Bleed Top Navigation Bar */}
       <Header
         account={account}
@@ -153,15 +153,17 @@ export function App() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "0.5rem",
             fontSize: "0.82rem",
             color: "var(--accent-rose)",
             zIndex: 30,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flex: "1 1 300px" }}>
             <AlertTriangle size={16} style={{ flexShrink: 0 }} />
             <span>
-              <strong>Wrong Network:</strong> MetaMask is connected to Chain ID {chainId} (Ethereum Mainnet). PoolPilot contracts are deployed on <strong>Localhost 8545 (Chain ID 31337)</strong>. Switch to Localhost to trade and avoid warnings.
+              <strong>Wrong Network:</strong> MetaMask is connected to Chain ID {chainId}. PoolPilot contracts are deployed on <strong>Localhost 8545 (Chain ID 31337)</strong>. Switch to Localhost to trade and avoid warnings.
             </span>
           </div>
           <button
@@ -192,16 +194,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          padding: "0.6rem 1rem",
-          overflowY: "auto",
-          minHeight: 0,
-        }}
-      >
+      <main className="app-main-content">
         {/* VIEW 1 & 2: ON-CHAIN DEX TRADING STATION (SWAP & LIQUIDITY) */}
         {(activeTab === "swap" || activeTab === "pool") && (
           <div className="trading-desk-layout">

@@ -92,7 +92,7 @@ export function LoginModal({
         </div>
 
         {/* Center Live Protocol Ticker Badges */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }} className="header-nav-pills">
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }} className="header-nav-pills login-header-ticker hide-on-mobile">
           <div
             style={{
               display: "flex",
@@ -176,6 +176,7 @@ export function LoginModal({
 
             {/* Main Welcome Heading */}
             <h1
+              className="login-hero-title"
               style={{
                 fontFamily: "var(--font-display)",
                 fontSize: "2.35rem",
@@ -192,40 +193,21 @@ export function LoginModal({
               </span>
             </h1>
 
-            <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: "1.5rem" }}>
+            <p className="login-hero-subtitle" style={{ fontSize: "0.95rem", color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: "1.5rem" }}>
               A high-performance automated market maker with transparent on-chain liquidity pools, sub-second orderflow, and non-custodial cryptographic authentication.
             </p>
 
             {/* Vector Illustration Container */}
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                maxWidth: "400px",
-                margin: "0 auto 1.3rem auto",
-                borderRadius: "var(--radius-lg)",
-                overflow: "hidden",
-                border: "1px solid var(--border-glass)",
-                boxShadow: "0 20px 45px -12px rgba(37, 99, 235, 0.18)",
-                background: "#FFFFFF",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
+            <div className="login-hero-img-card">
               <img
                 src="/login_hero.jpg"
                 alt="PoolPilot Decentralized Trading Concept"
-                style={{
-                  width: "100%",
-                  maxHeight: "310px",
-                  display: "block",
-                  objectFit: "contain",
-                }}
+                className="login-hero-img"
               />
             </div>
 
             {/* 3 Feature Pills at Bottom */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
+            <div className="login-feature-pills" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
               <div
                 style={{
                   background: "var(--bg-card)",

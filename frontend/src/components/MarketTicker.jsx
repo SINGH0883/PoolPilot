@@ -92,17 +92,17 @@ export function MarketTicker({ poolState, price, volumeStats, chainId, liveMarke
           </span>
         </div>
 
-        <div className="ticker-divider" />
+        <div className="ticker-divider hide-on-mobile" />
 
         {/* Real 24h High & Low */}
-        <div className="ticker-item">
+        <div className="ticker-item hide-on-mobile">
           <span className="ticker-label">24h High</span>
           <span className="ticker-val font-mono">
             ${marketData?.high24h?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || (Number(String(price).replace(/,/g, "")) * 1.018).toFixed(2)}
           </span>
         </div>
 
-        <div className="ticker-item">
+        <div className="ticker-item hide-on-mobile">
           <span className="ticker-label">24h Low</span>
           <span className="ticker-val font-mono">
             ${marketData?.low24h?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || (Number(String(price).replace(/,/g, "")) * 0.985).toFixed(2)}
@@ -118,7 +118,7 @@ export function MarketTicker({ poolState, price, volumeStats, chainId, liveMarke
         </div>
 
         {/* 24h Global Market Volume */}
-        <div className="ticker-item">
+        <div className="ticker-item hide-on-mobile">
           <span className="ticker-label">24h Market Vol</span>
           <span className="ticker-val">{display24hVol}</span>
         </div>

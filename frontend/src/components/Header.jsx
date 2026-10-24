@@ -1,6 +1,6 @@
 import React from "react";
 import { Waves, Wallet, Droplets, RefreshCw, PowerOff, Sun, Moon, ArrowLeftRight, Droplet, BarChart3, ShieldCheck, UserCheck } from "lucide-react";
-import { shortenAddress } from "../lib/ethereum";
+import { shortenAddress, SUPPORTED_NETWORKS } from "../lib/ethereum";
 import { AVATAR_OPTIONS } from "../hooks/useTraderAuth";
 
 export function Header({
@@ -28,19 +28,21 @@ export function Header({
     if (disconnectWallet) disconnectWallet();
   };
 
+  const currentNetwork = chainId ? SUPPORTED_NETWORKS[chainId] : null;
+
   return (
     <header className="top-navbar-wrapper">
       <div className="top-navbar-inner">
         {/* Brand Left */}
         <div className="brand-badge" onClick={() => setActiveTab && setActiveTab("swap")} style={{ cursor: "pointer" }}>
           <div className="brand-icon">
-            <Waves size={22} color="#FFFFFF" />
+            <Waves size={20} color="#FFFFFF" />
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center" }}>
               <span className="brand-title">PoolPilot</span>
             </div>
-            <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "1px" }}>
+            <div className="hide-on-mobile" style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "1px" }}>
               Constant-Product Protocol
             </div>
           </div>
@@ -53,97 +55,84 @@ export function Header({
               className={`nav-pill-btn ${activeTab === "swap" ? "active" : ""}`}
               onClick={() => setActiveTab("swap")}
             >
-              <ArrowLeftRight size={15} />
+              <ArrowLeftRight size={14} />
               <span>Swap</span>
             </button>
             <button
               className={`nav-pill-btn ${activeTab === "pool" ? "active" : ""}`}
               onClick={() => setActiveTab("pool")}
             >
-              <Droplet size={15} />
+              <Droplet size={14} />
               <span>Pool</span>
             </button>
             <button
               className={`nav-pill-btn ${activeTab === "analytics" ? "active" : ""}`}
               onClick={() => setActiveTab("analytics")}
             >
-              <BarChart3 size={15} />
+              <BarChart3 size={14} />
               <span>Analytics</span>
             </button>
           </nav>
         )}
 
         {/* Controls Right */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
           {/* Theme Toggle Button */}
           <button
             className="btn-secondary"
             onClick={toggleTheme}
-            title={theme === "light" ? "Switch to Dark Mode" : "Switch to Minimal White & Blue Theme"}
-            style={{ padding: "0.5rem 0.65rem" }}
+            title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+            style={{ padding: "0.45rem 0.6rem" }}
           >
-            {theme === "light" ? <Moon size={16} color="var(--accent-blue)" /> : <Sun size={16} color="var(--accent-cyan)" />}
+            {theme === "light" ? <Moon size={15} color="var(--accent-blue)" /> : <Sun size={15} color="var(--accent-cyan)" />}
           </button>
 
-          {/* Refresh Button */}
+          {/* Refresh Button - hidden on mobile since background auto-polling is active */}
           <button
-            className="btn-secondary"
+            className="btn-secondary hide-on-mobile"
             onClick={onRefresh}
             title="Refresh pool state & on-chain events"
-            style={{ padding: "0.5rem 0.65rem" }}
+            style={{ padding: "0.45rem 0.6rem" }}
           >
-            <RefreshCw size={15} className={loading ? "spin-icon" : ""} color="var(--text-secondary)" />
+            <RefreshCw size={14} className={loading ? "spin-icon" : ""} color="var(--text-secondary)" />
           </button>
 
           {/* Faucet Button */}
-          <button className="btn-secondary" onClick={openFaucet} title="Mint free test tokens" style={{ padding: "0.5rem 0.85rem" }}>
-            <Droplets size={15} color="var(--accent-blue)" />
-            <span style={{ fontWeight: 600 }}>Faucet</span>
+          <button className="btn-secondary" onClick={openFaucet} title="Mint free test tokens" style={{ padding: "0.45rem 0.75rem" }}>
+            <Droplets size={14} color="var(--accent-blue)" />
+            <span style={{ fontWeight: 600, fontSize: "0.8rem" }}>Faucet</span>
           </button>
 
-
-          {/* Network Status Badge */}
+          {/* Dynamic Network Status Badge */}
           {account && (
             chainId === 31337 ? (
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  background: "rgba(16, 185, 129, 0.1)",
-                  border: "1px solid rgba(16, 185, 129, 0.25)",
-                  color: "#10B981",
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
-                  padding: "0.45rem 0.65rem",
-                  borderRadius: "var(--radius-md)",
-                }}
-                title="Connected to Hardhat / Anvil Local Node (Chain ID 31337)"
+                className="network-badge-pill"
+                title="Connected to Local EVM Devnet (Chain ID 31337)"
               >
-                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10B981" }} />
-                <span>Localhost 31337</span>
+                <span className="network-dot-live" />
+                <span className="network-name-desktop">Local Devnet (31337)</span>
+                <span className="network-name-mobile">Devnet</span>
+              </div>
+            ) : currentNetwork && currentNetwork.isTestnet ? (
+              <div
+                className="network-badge-pill"
+                title={`Connected to ${currentNetwork.name} (Chain ID ${chainId})`}
+              >
+                <span className="network-dot-live" />
+                <span className="network-name-desktop">{currentNetwork.name}</span>
+                <span className="network-name-mobile">{currentNetwork.name.split(" ")[0]}</span>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => switchNetwork && switchNetwork(31337)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.35rem",
-                  background: "rgba(239, 68, 68, 0.12)",
-                  border: "1px solid rgba(239, 68, 68, 0.35)",
-                  color: "var(--accent-rose)",
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
-                  padding: "0.45rem 0.65rem",
-                  borderRadius: "var(--radius-md)",
-                  cursor: "pointer",
-                }}
-                title="Click to switch MetaMask to Localhost 8545 (Chain ID 31337)"
+                className="network-badge-pill wrong"
+                title="Click to switch MetaMask to Local Devnet (Chain ID 31337)"
               >
-                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-rose)" }} />
-                <span>Wrong Network (Switch)</span>
+                <span className="network-dot-warn" />
+                <span className="network-name-desktop">Wrong Network (Switch)</span>
+                <span className="network-name-mobile">Switch</span>
               </button>
             )
           )}
