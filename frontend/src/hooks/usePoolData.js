@@ -116,18 +116,25 @@ export function usePoolData(provider, account) {
           poolContract.balanceOf(account).catch(() => 0n),
         ]);
 
-        // If on-chain balance is zero, check if user has demo balances in localStorage
-        if (bal0 === 0n && bal1 === 0n) {
-          try {
-            const storedBal = localStorage.getItem(`poolpilot_demo_balances_${account.toLowerCase()}`);
-            if (storedBal) {
-              const parsed = JSON.parse(storedBal);
-              if (parsed.usdc && Number(parsed.usdc) > 0) bal0 = ethers.parseUnits(String(parsed.usdc), 18);
-              if (parsed.weth && Number(parsed.weth) > 0) bal1 = ethers.parseUnits(String(parsed.weth), 18);
-              if (parsed.lp && Number(parsed.lp) > 0) userLp = ethers.parseUnits(String(parsed.lp), 18);
+        // Sync demo balances from localStorage
+        try {
+          const storedBal = localStorage.getItem(`poolpilot_demo_balances_${account.toLowerCase()}`);
+          if (storedBal) {
+            const parsed = JSON.parse(storedBal);
+            if (parsed.usdc && Number(parsed.usdc) > 0) {
+              const demo0 = ethers.parseUnits(String(parsed.usdc), 18);
+              if (demo0 > bal0) bal0 = demo0;
             }
-          } catch {}
-        }
+            if (parsed.weth && Number(parsed.weth) > 0) {
+              const demo1 = ethers.parseUnits(String(parsed.weth), 18);
+              if (demo1 > bal1) bal1 = demo1;
+            }
+            if (parsed.lp && Number(parsed.lp) > 0) {
+              const demoLpVal = ethers.parseUnits(String(parsed.lp), 18);
+              if (demoLpVal > userLp) userLp = demoLpVal;
+            }
+          }
+        } catch {}
       }
 
       setPoolState({

@@ -42,26 +42,10 @@ export function FaucetModal({
       setStatusMessage(`Minting ${Number(selectedTier.usdc).toLocaleString()} USDC and ${selectedTier.weth} WETH to your account...`);
       setErrorMessage(null);
 
-      // If connected to Localhost 31337 with an active signer, try on-chain first
-      if (chainId === 31337 && signer && poolState?.token0?.address) {
-        try {
-          const token0Contract = new ethers.Contract(poolState.token0.address, ERC20_ABI, signer);
-          const token1Contract = new ethers.Contract(poolState.token1.address, ERC20_ABI, signer);
+      // Brief 700ms realistic delay
+      await new Promise((resolve) => setTimeout(resolve, 700));
 
-          const mintAmount0 = ethers.parseUnits(selectedTier.usdc, poolState.token0.decimals);
-          const mintAmount1 = ethers.parseUnits(selectedTier.weth, poolState.token1.decimals);
-
-          const tx0 = await token0Contract.mint(account, mintAmount0);
-          await tx0.wait();
-
-          const tx1 = await token1Contract.mint(account, mintAmount1);
-          await tx1.wait();
-        } catch (onChainErr) {
-          console.warn("On-chain mint unavailable, applying instant credit:", onChainErr);
-        }
-      }
-
-      // Ensure account is credited in local demo storage for seamless trading on Vercel
+      // Instantly credit tokens into account balances without triggering MetaMask Blockaid popups
       const key = `poolpilot_demo_balances_${account.toLowerCase()}`;
       let existing = { usdc: "0", weth: "0" };
       try {
@@ -78,7 +62,7 @@ export function FaucetModal({
       setTimeout(() => {
         onClose();
         setStatusMessage(null);
-      }, 1200);
+      }, 900);
     } catch (err) {
       setErrorMessage(parseContractError(err));
     } finally {
