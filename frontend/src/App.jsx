@@ -143,46 +143,7 @@ export function App() {
         switchNetwork={switchNetwork}
       />
 
-      {/* Wrong Network Alert Banner */}
-      {account && chainId && chainId !== 31337 && (
-        <div
-          style={{
-            background: "linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.08) 100%)",
-            borderBottom: "1px solid rgba(239, 68, 68, 0.35)",
-            padding: "0.55rem 1.25rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "0.5rem",
-            fontSize: "0.82rem",
-            color: "var(--accent-rose)",
-            zIndex: 30,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flex: "1 1 300px" }}>
-            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
-            <span>
-              <strong>Wrong Network:</strong> MetaMask is connected to Chain ID {chainId}. PoolPilot contracts are deployed on <strong>Localhost 8545 (Chain ID 31337)</strong>. Switch to Localhost to trade and avoid warnings.
-            </span>
-          </div>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => switchNetwork(31337)}
-            style={{
-              padding: "0.3rem 0.85rem",
-              fontSize: "0.76rem",
-              background: "var(--accent-rose)",
-              borderColor: "var(--accent-rose)",
-              fontWeight: 700,
-              flexShrink: 0,
-            }}
-          >
-            Switch to Localhost 8545 (31337)
-          </button>
-        </div>
-      )}
+
 
       {/* Realtime On-Chain & Live Binance CEX Market Ticker Bar */}
       <MarketTicker

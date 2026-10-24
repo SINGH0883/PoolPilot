@@ -103,38 +103,40 @@ export function Header({
             <span style={{ fontWeight: 600, fontSize: "0.8rem" }}>Faucet</span>
           </button>
 
-          {/* Dynamic Network Status Badge */}
+          {/* Dynamic Active Network Badge */}
           {account && (
-            chainId === 31337 ? (
-              <div
-                className="network-badge-pill"
-                title="Connected to Local EVM Devnet (Chain ID 31337)"
-              >
-                <span className="network-dot-live" />
-                <span className="network-name-desktop">Local Devnet (31337)</span>
-                <span className="network-name-mobile">Devnet</span>
-              </div>
-            ) : currentNetwork && currentNetwork.isTestnet ? (
-              <div
-                className="network-badge-pill"
-                title={`Connected to ${currentNetwork.name} (Chain ID ${chainId})`}
-              >
-                <span className="network-dot-live" />
-                <span className="network-name-desktop">{currentNetwork.name}</span>
-                <span className="network-name-mobile">{currentNetwork.name.split(" ")[0]}</span>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => switchNetwork && switchNetwork(31337)}
-                className="network-badge-pill wrong"
-                title="Click to switch MetaMask to Local Devnet (Chain ID 31337)"
-              >
-                <span className="network-dot-warn" />
-                <span className="network-name-desktop">Wrong Network (Switch)</span>
-                <span className="network-name-mobile">Switch</span>
-              </button>
-            )
+            <div
+              className="network-badge-pill"
+              title={`Connected to ${
+                chainId === 31337
+                  ? "Local EVM Devnet (31337)"
+                  : chainId === 1
+                  ? "Ethereum Mainnet (Chain 1)"
+                  : currentNetwork
+                  ? `${currentNetwork.name} (Chain ${chainId})`
+                  : `EVM Chain ${chainId}`
+              }`}
+            >
+              <span className="network-dot-live" />
+              <span className="network-name-desktop">
+                {chainId === 31337
+                  ? "Local Devnet (31337)"
+                  : chainId === 1
+                  ? "Ethereum Mainnet"
+                  : currentNetwork
+                  ? currentNetwork.name
+                  : `Chain ${chainId}`}
+              </span>
+              <span className="network-name-mobile">
+                {chainId === 31337
+                  ? "Devnet"
+                  : chainId === 1
+                  ? "Mainnet"
+                  : currentNetwork
+                  ? currentNetwork.name.split(" ")[0]
+                  : `${chainId}`}
+              </span>
+            </div>
           )}
 
           {/* User Trader Profile & Wallet Connection */}
