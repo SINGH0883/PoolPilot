@@ -4,6 +4,8 @@ import { useWallet } from "./hooks/useWallet";
 import { usePoolData } from "./hooks/usePoolData";
 import { usePoolEvents } from "./hooks/usePoolEvents";
 import { Header } from "./components/Header";
+import { MarketTicker } from "./components/MarketTicker";
+import { TradingChart } from "./components/TradingChart";
 import { TraderMetrics } from "./components/TraderMetrics";
 import { ActivityLedger } from "./components/ActivityLedger";
 import { SwapCard } from "./components/SwapCard";
@@ -108,56 +110,116 @@ export function App() {
         setActiveTab={setActiveTab}
       />
 
+      {/* Realtime On-Chain Market Ticker Bar */}
+      <MarketTicker
+        poolState={poolState}
+        price={price}
+        volumeStats={volumeStats}
+        chainId={chainId}
+      />
+
       {/* Main Content Area */}
       <main
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: activeTab === "analytics" ? "flex-start" : "center",
-          alignItems: "center",
-          padding: "0.5rem 1rem",
+          padding: "0.6rem 1rem",
           overflowY: "auto",
           minHeight: 0,
         }}
       >
-        {/* VIEW 1: SWAP INTERFACE */}
-        {activeTab === "swap" && (
-          <div style={{ width: "100%", maxWidth: "460px", margin: "0 auto" }}>
-            <SwapCard
-              poolState={poolState}
-              signer={signer}
-              account={account}
-              provider={provider}
-              connectWallet={connectWallet}
-              onTxStart={handleTxStart}
-              onTxSuccess={handleTxSuccess}
-              onTxError={handleTxError}
-              price={price}
-              onViewAnalytics={() => setActiveTab("analytics")}
-            />
-          </div>
-        )}
+        {/* VIEW 1 & 2: ON-CHAIN DEX TRADING STATION (SWAP & LIQUIDITY) */}
+        {(activeTab === "swap" || activeTab === "pool") && (
+          <div className="trading-desk-layout">
+            {/* Left 65%: Pro Trading Chart & AMM Math Curve */}
+            <div className="trading-desk-main">
+              <TradingChart
+                poolState={poolState}
+                events={events}
+                price={price}
+                volumeStats={volumeStats}
+              />
+            </div>
 
-        {/* VIEW 2: LIQUIDITY PROVISION INTERFACE */}
-        {activeTab === "pool" && (
-          <div style={{ width: "100%", maxWidth: "460px", margin: "0 auto" }}>
-            <LiquidityCard
-              poolState={poolState}
-              signer={signer}
-              account={account}
-              provider={provider}
-              connectWallet={connectWallet}
-              onTxStart={handleTxStart}
-              onTxSuccess={handleTxSuccess}
-              onTxError={handleTxError}
-            />
+            {/* Right 35%: Execution Terminal */}
+            <div className="trading-desk-sidebar">
+              {/* Terminal Quick Switcher */}
+              <div
+                style={{
+                  display: "flex",
+                  background: "var(--tab-container-bg)",
+                  border: "1px solid var(--tab-container-border)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "0.2rem",
+                  marginBottom: "0.55rem",
+                  gap: "0.2rem",
+                }}
+              >
+                <button
+                  className={`tab-btn ${activeTab === "swap" ? "active" : ""}`}
+                  onClick={() => setActiveTab("swap")}
+                  style={{
+                    padding: "0.42rem",
+                    fontSize: "0.82rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.4rem",
+                  }}
+                >
+                  <ArrowLeftRight size={13} />
+                  <span>Swap</span>
+                </button>
+                <button
+                  className={`tab-btn ${activeTab === "pool" ? "active" : ""}`}
+                  onClick={() => setActiveTab("pool")}
+                  style={{
+                    padding: "0.42rem",
+                    fontSize: "0.82rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.4rem",
+                  }}
+                >
+                  <Droplet size={13} />
+                  <span>Liquidity Pool</span>
+                </button>
+              </div>
+
+              {activeTab === "swap" ? (
+                <SwapCard
+                  poolState={poolState}
+                  signer={signer}
+                  account={account}
+                  provider={provider}
+                  connectWallet={connectWallet}
+                  onTxStart={handleTxStart}
+                  onTxSuccess={handleTxSuccess}
+                  onTxError={handleTxError}
+                  price={price}
+                  onViewAnalytics={() => setActiveTab("analytics")}
+                />
+              ) : (
+                <LiquidityCard
+                  poolState={poolState}
+                  signer={signer}
+                  account={account}
+                  provider={provider}
+                  connectWallet={connectWallet}
+                  onTxStart={handleTxStart}
+                  onTxSuccess={handleTxSuccess}
+                  onTxError={handleTxError}
+                />
+              )}
+            </div>
           </div>
         )}
 
         {/* VIEW 3: FULL TRADER ANALYTICS & ACTIVITY LEDGER */}
         {activeTab === "analytics" && (
-          <div style={{ width: "100%", maxWidth: "1280px", margin: "0 auto", paddingBottom: "1rem" }}>
+          <div style={{ width: "100%", maxWidth: "1440px", margin: "0 auto", paddingBottom: "1rem" }}>
             <TraderMetrics poolState={poolState} volumeStats={volumeStats} />
             <ActivityLedger
               events={events}
