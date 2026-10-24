@@ -10,9 +10,10 @@
     "compile": "npm --prefix contracts run compile",
     "node": "npm --prefix contracts run node",
     "deploy:local": "npm --prefix contracts run deploy:local",
+    "postinstall": "npm --prefix frontend install",
     "dev": "npm --prefix frontend run dev",
-    "build": "npm --prefix frontend run build",
-    "build:frontend": "npm --prefix frontend run build"
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "build:frontend": "npm --prefix frontend install && npm --prefix frontend run build"
   },
   "keywords": [
     "amm",
