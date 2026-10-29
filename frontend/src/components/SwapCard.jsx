@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ethers } from "ethers";
 import { ArrowDownUp, Settings, AlertCircle, Check, Loader2, Droplets } from "lucide-react";
 import { POOL_ABI, ERC20_ABI } from "../config/abis";
@@ -81,8 +81,14 @@ export function SwapCard({
     }
   }, [provider, poolAddress, inputToken.address, inputReserve, outputReserve]);
 
+  // Debounce quote fetching by 300ms to avoid flooding the RPC on each keystroke
+  const debounceTimer = useRef(null);
   useEffect(() => {
-    fetchQuote(amountInBigInt);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      fetchQuote(amountInBigInt);
+    }, 300);
+    return () => clearTimeout(debounceTimer.current);
   }, [amountInBigInt, fetchQuote]);
 
   // Flip tokens direction
@@ -198,7 +204,34 @@ export function SwapCard({
         localStorage.setItem(key, JSON.stringify(bal));
       }
 
-      if (onTxSuccess) onTxSuccess(`Swapped ${amountInStr} ${inputToken.symbol} for ${formatTokenAmount(estimatedOut, outputToken.decimals, 4)} ${outputToken.symbol}!`, txHash);
+      // Broadcast new ledger event to update Activity Ledger & Metrics instantly
+      const usdVal = isToken0In ? Number(amountInStr) : Number(amountInStr) * (Number(String(price).replace(/,/g, "")) || 2350);
+      const outFormattedStr = formatTokenAmount(estimatedOut, outputToken.decimals, 4);
+      const execRate = isToken0In
+        ? `1 ${outputToken.symbol} = ${(Number(amountInStr) / (Number(outFormattedStr) || 1)).toFixed(2)} ${inputToken.symbol}`
+        : `1 ${inputToken.symbol} = ${(Number(outFormattedStr) / (Number(amountInStr) || 1)).toFixed(2)} ${outputToken.symbol}`;
+
+      window.dispatchEvent(
+        new CustomEvent("poolpilot_new_event", {
+          detail: {
+            type: "SWAP",
+            txHash,
+            blockNumber: Math.floor(19482000 + Math.random() * 500),
+            timestamp: Date.now(),
+            sender: account || "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            recipient: account || "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            tokenInSymbol: inputToken.symbol,
+            tokenOutSymbol: outputToken.symbol,
+            amountInFormatted: amountInStr,
+            amountOutFormatted: outFormattedStr,
+            usdValue: usdVal,
+            execPrice: execRate,
+            isUserTx: true,
+          },
+        })
+      );
+
+      if (onTxSuccess) onTxSuccess(`Swapped ${amountInStr} ${inputToken.symbol} for ${outFormattedStr} ${outputToken.symbol}!`, txHash);
       setAmountInStr("");
       setEstimatedOut(0n);
     } catch (err) {
@@ -213,12 +246,21 @@ export function SwapCard({
   const effectiveSlippage = customSlippage !== "" ? Number(customSlippage) : slippage;
   const minReceived = calculateSlippageMin(estimatedOut, effectiveSlippage);
 
-  // Price impact calculation
+  // Price impact calculation — keep as number for comparisons, format only for display
+  let priceImpactNum = 0;
   let priceImpact = "0.00%";
   if (amountInBigInt > 0n && inputReserve > 0n) {
-    const impact = (Number(amountInBigInt) / (Number(inputReserve) + Number(amountInBigInt))) * 100;
-    priceImpact = impact < 0.01 ? "< 0.01%" : `${impact.toFixed(2)}%`;
+    priceImpactNum = (Number(amountInBigInt) / (Number(inputReserve) + Number(amountInBigInt))) * 100;
+    priceImpact = priceImpactNum < 0.01 ? "< 0.01%" : `${priceImpactNum.toFixed(2)}%`;
   }
+
+  // Real reserve ratio for pool depth bar
+  const r0Num = Number(reserve0);
+  const r1Num = Number(reserve1);
+  const r1InR0Units = r1Num * (Number(String(price).replace(/,/g, "")) || 1);
+  const totalDepth = r0Num + r1InR0Units;
+  const token0DepthPct = totalDepth > 0 ? (r0Num / totalDepth) * 100 : 50;
+  const token1DepthPct = 100 - token0DepthPct;
 
   return (
     <div className="glass-panel" style={{ padding: "1.15rem 1.35rem", width: "100%", maxWidth: "460px", margin: "0 auto" }}>
@@ -331,14 +373,9 @@ export function SwapCard({
             onChange={(e) => setAmountInStr(e.target.value)}
           />
           <div className="token-badge">
-            <span
-              style={{
-                width: "10px",
-                height: "10px",
-                borderRadius: "50%",
-                background: isToken0In ? "var(--accent-cyan)" : "var(--accent-violet)",
-              }}
-            />
+            <span style={{ fontSize: "1rem", lineHeight: 1 }}>
+              {inputToken.symbol === "USDC" ? "💵" : inputToken.symbol === "WETH" ? "⟠" : "🪙"}
+            </span>
             <span>{inputToken.symbol}</span>
           </div>
         </div>
@@ -397,14 +434,9 @@ export function SwapCard({
             }
           />
           <div className="token-badge">
-            <span
-              style={{
-                width: "10px",
-                height: "10px",
-                borderRadius: "50%",
-                background: !isToken0In ? "var(--accent-cyan)" : "var(--accent-violet)",
-              }}
-            />
+            <span style={{ fontSize: "1rem", lineHeight: 1 }}>
+              {outputToken.symbol === "USDC" ? "💵" : outputToken.symbol === "WETH" ? "⟠" : "🪙"}
+            </span>
             <span>{outputToken.symbol}</span>
           </div>
         </div>
@@ -439,8 +471,15 @@ export function SwapCard({
           </div>
           <div className="detail-row">
             <span>Price Impact</span>
-            <span className="detail-value" style={{ color: Number(priceImpact.replace("%", "")) > 5 ? "var(--accent-rose)" : "var(--accent-emerald)" }}>
+            <span className="detail-value" style={{
+              color: priceImpactNum > 5
+                ? "var(--accent-rose)"
+                : priceImpactNum > 1
+                ? "var(--accent-amber)"
+                : "var(--accent-emerald)"
+            }}>
               {priceImpact}
+              {priceImpactNum > 5 && " ⚠️"}
             </span>
           </div>
           <div className="detail-row">
@@ -528,7 +567,7 @@ export function SwapCard({
           </button>
         ) : (
           <button
-            className="btn-primary"
+            className={`btn-primary${amountInBigInt > 0n && estimatedOut > 0n && !swapping ? " btn-swap-ready" : ""}`}
             style={{ width: "100%" }}
             onClick={handleSwap}
             disabled={swapping || amountInBigInt <= 0n || estimatedOut <= 0n}
@@ -541,7 +580,7 @@ export function SwapCard({
             ) : amountInBigInt <= 0n ? (
               <span>Enter an Amount</span>
             ) : (
-              <span>Swap Now</span>
+              <span>⚡ Swap Now</span>
             )}
           </button>
         )}
@@ -586,9 +625,10 @@ export function SwapCard({
             overflow: "hidden",
             display: "flex",
           }}
+          title={`${token0.symbol}: ${token0DepthPct.toFixed(1)}% | ${token1.symbol}: ${token1DepthPct.toFixed(1)}%`}
         >
-          <div style={{ width: "50%", background: "#2563EB" }} />
-          <div style={{ width: "50%", background: "#8B5CF6" }} />
+          <div style={{ width: `${token0DepthPct}%`, background: "#2563EB", transition: "width 0.6s ease" }} />
+          <div style={{ width: `${token1DepthPct}%`, background: "#8B5CF6", transition: "width 0.6s ease" }} />
         </div>
       </div>
     </div>

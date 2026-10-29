@@ -27,13 +27,13 @@ export function useWallet() {
       const eth = getInjectedProvider();
 
       // 1. If previously connected via local test wallet and not explicitly disconnected
+      // 1. If previously connected via local test wallet and not explicitly disconnected
       if (!isUserDisconnected && savedType === "local") {
         try {
-          const localProvider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
-          const localWallet = new ethers.Wallet(
-            "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-            localProvider
-          );
+          const rpcUrl = import.meta.env.VITE_RPC_URL || "http://127.0.0.1:8545";
+          const devKey = import.meta.env.VITE_DEV_PRIVATE_KEY || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+          const localProvider = new ethers.JsonRpcProvider(rpcUrl);
+          const localWallet = new ethers.Wallet(devKey, localProvider);
           setProvider(localProvider);
           setAccount(localWallet.address);
           setSigner(localWallet);
@@ -83,9 +83,21 @@ export function useWallet() {
           }
         };
 
-        const handleChainChanged = (newChainId) => {
-          setChainId(Number(BigInt(newChainId)));
-          window.location.reload();
+        const handleChainChanged = async (newChainId) => {
+          const parsedId = Number(BigInt(newChainId));
+          setChainId(parsedId);
+          try {
+            const newBrowserProvider = new ethers.BrowserProvider(eth);
+            setProvider(newBrowserProvider);
+            const accounts = await newBrowserProvider.listAccounts();
+            if (accounts.length > 0) {
+              const accAddress = typeof accounts[0] === "string" ? accounts[0] : accounts[0].address;
+              setAccount(accAddress);
+              setSigner(await newBrowserProvider.getSigner(accAddress));
+            }
+          } catch {
+            window.location.reload();
+          }
         };
 
         if (eth.on) {

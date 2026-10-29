@@ -31,7 +31,7 @@ export function MarketTicker({ poolState, price, volumeStats, chainId, liveMarke
   const tvl = r0 + r1 * poolPriceNum;
   const formattedTvl = tvl > 0
     ? `$${tvl.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : "$100,000.00";
+    : "—";
 
   // Real Market Data or fallback
   const isPositive = (marketData?.priceChangePercent || 0) >= 0;

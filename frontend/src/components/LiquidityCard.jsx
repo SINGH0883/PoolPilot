@@ -92,10 +92,15 @@ export function LiquidityCard({
 
   // Expected LP share percentage when adding liquidity
   let projectedSharePct = "0.00%";
-  if (amount0BigInt > 0n && reserve0 > 0n && totalLpSupply > 0n) {
-    const newSupply = totalLpSupply + (amount0BigInt * totalLpSupply) / reserve0;
-    const userNew = userLpBalance + (amount0BigInt * totalLpSupply) / reserve0;
-    projectedSharePct = ((Number(userNew) / Number(newSupply)) * 100).toFixed(2) + "%";
+  if (amount0BigInt > 0n) {
+    if (totalLpSupply === 0n || reserve0 === 0n) {
+      projectedSharePct = "100.00% (Pool Founder)";
+    } else {
+      const addedShares = (amount0BigInt * totalLpSupply) / reserve0;
+      const newSupply = totalLpSupply + addedShares;
+      const userNew = userLpBalance + addedShares;
+      projectedSharePct = ((Number(userNew) / Number(newSupply)) * 100).toFixed(2) + "%";
+    }
   }
 
   // Tokens to receive when removing liquidity
@@ -193,6 +198,28 @@ export function LiquidityCard({
         localStorage.setItem(key, JSON.stringify(bal));
       }
 
+      // Broadcast to Activity Ledger
+      window.dispatchEvent(
+        new CustomEvent("poolpilot_new_event", {
+          detail: {
+            type: "ADD_LIQUIDITY",
+            txHash,
+            blockNumber: Math.floor(19482000 + Math.random() * 500),
+            timestamp: Date.now(),
+            sender: account || "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            to: account || "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            token0Symbol: token0.symbol,
+            token1Symbol: token1.symbol,
+            amount0Formatted: amount0Str,
+            amount1Formatted: amount1Str,
+            sharesFormatted: (Number(amount1Str) * 45).toFixed(2),
+            usdValue: Number(amount0Str) * 2,
+            execPrice: "Proportional",
+            isUserTx: true,
+          },
+        })
+      );
+
       if (onTxSuccess) onTxSuccess(`Successfully supplied liquidity to the pool!`, txHash);
       setAmount0Str("");
       setAmount1Str("");
@@ -256,6 +283,28 @@ export function LiquidityCard({
         localStorage.setItem(key, JSON.stringify(bal));
       }
 
+      // Broadcast to Activity Ledger
+      window.dispatchEvent(
+        new CustomEvent("poolpilot_new_event", {
+          detail: {
+            type: "REMOVE_LIQUIDITY",
+            txHash,
+            blockNumber: Math.floor(19482000 + Math.random() * 500),
+            timestamp: Date.now(),
+            sender: account || "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            to: account || "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            token0Symbol: token0.symbol,
+            token1Symbol: token1.symbol,
+            amount0Formatted: formatTokenAmount(expectedReturn0, token0.decimals, 4),
+            amount1Formatted: formatTokenAmount(expectedReturn1, token1.decimals, 4),
+            sharesFormatted: formatTokenAmount(sharesToRemove, 18, 4),
+            usdValue: Number(formatTokenAmount(expectedReturn0, token0.decimals, 2)) * 2,
+            execPrice: "Proportional",
+            isUserTx: true,
+          },
+        })
+      );
+
       if (onTxSuccess) onTxSuccess(`Successfully withdrew underlying tokens!`, txHash);
     } catch (err) {
       if (onTxError) onTxError(parseContractError(err));
@@ -318,7 +367,7 @@ export function LiquidityCard({
                 onChange={(e) => handleAmount0Change(e.target.value)}
               />
               <div className="token-badge">
-                <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--accent-cyan)" }} />
+                <span className="token-icon token-icon-usdc">💵</span>
                 <span>{token0.symbol}</span>
               </div>
             </div>
@@ -344,7 +393,7 @@ export function LiquidityCard({
                 onChange={(e) => handleAmount1Change(e.target.value)}
               />
               <div className="token-badge">
-                <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--accent-violet)" }} />
+                <span className="token-icon token-icon-weth">⟠</span>
                 <span>{token1.symbol}</span>
               </div>
             </div>

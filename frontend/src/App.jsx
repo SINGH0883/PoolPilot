@@ -154,6 +154,13 @@ export function App() {
         liveMarket={liveMarket}
       />
 
+      {/* Testnet Safety Banner */}
+      {chainId && chainId !== 1 && (
+        <div className="testnet-banner">
+          ⚠️ You are connected to a <strong>testnet</strong> ({chainId === 31337 ? "Local Devnet" : `Chain ${chainId}`}). All tokens are for testing only — no real funds at risk.
+        </div>
+      )}
+
       {/* Main Content Area */}
       <main className="app-main-content">
         {/* VIEW 1 & 2: ON-CHAIN DEX TRADING STATION (SWAP & LIQUIDITY) */}

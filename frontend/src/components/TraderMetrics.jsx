@@ -26,9 +26,10 @@ export function TraderMetrics({ poolState, volumeStats }) {
     : "$0.00";
 
   // Calculate Reserve Percentages for Depth Meter
+  const isUnseeded = r0Num === 0 && r1Num === 0;
   const totalValueNum = tvlUSD > 0 ? tvlUSD : 1;
-  const pct0 = ((r0Num / totalValueNum) * 100).toFixed(1);
-  const pct1 = (((r1Num * rate1to0) / totalValueNum) * 100).toFixed(1);
+  const pct0 = isUnseeded ? "50.0" : ((r0Num / totalValueNum) * 100).toFixed(1);
+  const pct1 = isUnseeded ? "50.0" : (((r1Num * rate1to0) / totalValueNum) * 100).toFixed(1);
 
   // Formatted Volume & Fees
   const formattedVolume = `$${volumeStats.cumulativeVolumeUSDC.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

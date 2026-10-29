@@ -25,3 +25,11 @@ frontend/dist-ssr/
 .DS_Store
 Thumbs.db
 *.log
+
+# Video generation components, raw recordings, audio stems & rendered media
+video_components/
+video_generator/
+*.mp4
+*.webm
+*.wav
+*.mp3
