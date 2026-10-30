@@ -891,20 +891,22 @@ export function TradingChart({
                   </div>
                 ) : (
                   events.map((ev, i) => {
-                    const isBuy = ev.type === "SWAP" && ev.data?.amount0In > 0n;
+                    const isBuy = ev.type === "SWAP" && (ev.tokenInSymbol === "USDC" || (ev.data?.amount0In && ev.data.amount0In > 0n));
+                    const volumeText = ev.type === "SWAP"
+                      ? `${ev.amountInFormatted || "0"} ${ev.tokenInSymbol || "USDC"} → ${ev.amountOutFormatted || "0"} ${ev.tokenOutSymbol || "WETH"}`
+                      : (ev.type === "ADD_LIQUIDITY"
+                          ? `+${ev.amount0Formatted || "0"} USDC / +${ev.amount1Formatted || "0"} WETH`
+                          : `-${ev.amount0Formatted || "0"} USDC / -${ev.amount1Formatted || "0"} WETH`);
+
                     return (
                       <div key={`${ev.txHash}-${i}`} className="trade-stream-row">
                         <span className={`side-badge ${isBuy ? "buy" : "sell"}`}>
-                          {ev.type === "SWAP" ? (isBuy ? "BUY ETH" : "SELL ETH") : ev.type}
+                          {ev.type === "SWAP" ? (isBuy ? "BUY WETH" : "SELL WETH") : (ev.type === "ADD_LIQUIDITY" ? "SUPPLY" : "WITHDRAW")}
                         </span>
                         <span className="trade-volume-text">
-                          {ev.type === "SWAP" ? (
-                            isBuy
-                              ? `${formatTokenAmount(ev.data.amount0In, 6, 1)} USDC → ${formatTokenAmount(ev.data.amount1Out, 18, 3)} ETH`
-                              : `${formatTokenAmount(ev.data.amount1In, 18, 3)} ETH → ${formatTokenAmount(ev.data.amount0Out, 6, 1)} USDC`
-                          ) : "Liquidity Event"}
+                          {volumeText}
                         </span>
-                        <span className="trade-price-text">${price}</span>
+                        <span className="trade-price-text">{ev.execPrice || `$${price}`}</span>
                         <span className="trade-address-text">{shortenAddress(ev.sender || ev.account)}</span>
                         <a
                           href={`https://etherscan.io/tx/${ev.txHash}`}

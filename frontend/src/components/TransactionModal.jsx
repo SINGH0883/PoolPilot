@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { CheckCircle2, XCircle, Loader2, ExternalLink, X } from "lucide-react";
 import { SUPPORTED_NETWORKS, shortenAddress } from "../lib/ethereum";
 
 export function TransactionModal({ txState, onClose, chainId }) {
   if (!txState || txState.status === "idle") return null;
+
+  // Auto-close success modal after 6 seconds
+  useEffect(() => {
+    if (txState.status === "success") {
+      const t = setTimeout(onClose, 6000);
+      return () => clearTimeout(t);
+    }
+  }, [txState.status, onClose]);
 
   const currentNetwork = chainId ? SUPPORTED_NETWORKS[chainId] : null;
   const explorerUrl = currentNetwork?.explorerUrl;
@@ -30,6 +38,8 @@ export function TransactionModal({ txState, onClose, chainId }) {
         )}
 
         <div style={{ textAlign: "center", padding: "1rem 0" }}>
+          {/* Auto-dismiss progress bar */}
+          {txState.status === "success" && <div className="auto-dismiss-bar" />}
           {/* Waiting for signature */}
           {txState.status === "waiting" && (
             <div>
@@ -64,7 +74,10 @@ export function TransactionModal({ txState, onClose, chainId }) {
           {/* Success */}
           {txState.status === "success" && (
             <div>
-              <CheckCircle2 size={54} color="var(--accent-emerald)" style={{ margin: "0 auto 1.25rem auto" }} />
+              <div style={{ position: "relative", width: "64px", height: "64px", margin: "0 auto 1.25rem auto" }}>
+                <div className="tx-success-ring" />
+                <CheckCircle2 size={54} color="var(--accent-emerald)" style={{ position: "absolute", top: "5px", left: "5px" }} />
+              </div>
               <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", marginBottom: "0.5rem", color: "var(--text-primary)" }}>
                 Transaction Successful!
               </h3>
@@ -107,11 +120,11 @@ export function TransactionModal({ txState, onClose, chainId }) {
               </h3>
               <div
                 style={{
-                  background: "rgba(244, 63, 94, 0.1)",
-                  border: "1px solid rgba(244, 63, 94, 0.25)",
+                  background: "var(--alert-error-bg)",
+                  border: "1px solid var(--alert-error-border)",
                   borderRadius: "var(--radius-md)",
                   padding: "0.85rem",
-                  color: "#FECDD3",
+                  color: "var(--alert-error-text)",
                   fontSize: "0.84rem",
                   lineHeight: "1.45",
                   marginBottom: "1.25rem",

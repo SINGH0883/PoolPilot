@@ -174,6 +174,14 @@ export function usePoolData(provider, account) {
     fetchPoolData();
   }, [fetchPoolData]);
 
+  // Auto-refresh every 15s so trades by other wallets are visible
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchPoolData();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [fetchPoolData]);
+
   return {
     poolState,
     loading,

@@ -181,12 +181,12 @@ contract PoolPilotPool is IPoolPilotPool, ERC20, ReentrancyGuard {
             _mint(to, shares);
         }
 
-        // Checks-Effects-Interactions
-        reserve0 += amount0;
-        reserve1 += amount1;
-
+        // Checks-Effects-Interactions: transfer tokens IN first, then update reserves
         IERC20(token0).safeTransferFrom(msg.sender, address(this), amount0);
         IERC20(token1).safeTransferFrom(msg.sender, address(this), amount1);
+
+        reserve0 += amount0;
+        reserve1 += amount1;
 
         emit Mint(msg.sender, to, amount0, amount1, shares);
         emit Sync(reserve0, reserve1);
@@ -225,11 +225,12 @@ contract PoolPilotPool is IPoolPilotPool, ERC20, ReentrancyGuard {
 
         _burn(msg.sender, shares);
 
-        reserve0 -= amount0;
-        reserve1 -= amount1;
-
+        // Transfer tokens OUT first, then update reserves (CEI pattern)
         IERC20(token0).safeTransfer(to, amount0);
         IERC20(token1).safeTransfer(to, amount1);
+
+        reserve0 -= amount0;
+        reserve1 -= amount1;
 
         emit Burn(msg.sender, to, amount0, amount1, shares);
         emit Sync(reserve0, reserve1);
@@ -293,5 +294,12 @@ contract PoolPilotPool is IPoolPilotPool, ERC20, ReentrancyGuard {
         reserve0 = IERC20(token0).balanceOf(address(this));
         reserve1 = IERC20(token1).balanceOf(address(this));
         emit Sync(reserve0, reserve1);
+    }
+
+    /**
+     * @notice Reject accidental ETH sends to the pool contract.
+     */
+    receive() external payable {
+        revert("PoolPilotPool: ETH not accepted");
     }
 }
